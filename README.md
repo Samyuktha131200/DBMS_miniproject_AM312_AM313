@@ -138,7 +138,8 @@ The repository includes the ER diagram and relational schema files. Further docu
 
 ## 11. Contributors
 
-Add the names and responsibilities of both team members here.
+Samyuktha Vadrevu:PES1UG24AM312
+Vaishali Krishnan:PES1UG24AM313
 
 ## 12. Project Status
 
