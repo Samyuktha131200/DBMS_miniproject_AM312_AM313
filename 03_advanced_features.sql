@@ -28,14 +28,14 @@ BEGIN
         ec.chief_complaint,
         ec.triage_level,
         ec.case_status,
-        a.vehicle_number,
-        hb.bed_id,
+        a.vehicle_number,      -- NULL for walk-in cases
+        hb.bed_id,             -- NULL if no bed assigned yet
         hb.ward_type,
         hb.status AS bed_status
     FROM EMERGENCY_CASE ec
     JOIN PATIENT p ON p.patient_id = ec.patient_id
-    JOIN AMBULANCE a ON a.ambulance_id = ec.ambulance_id
-    JOIN HOSPITAL_BED hb ON hb.bed_id = ec.bed_id
+    LEFT JOIN AMBULANCE a ON a.ambulance_id = ec.ambulance_id
+    LEFT JOIN HOSPITAL_BED hb ON hb.bed_id = ec.bed_id
     WHERE ec.case_id = p_case_id;
 END$$
 
@@ -77,12 +77,11 @@ SELECT
     ec.chief_complaint,
     ec.triage_level,
     ec.case_status,
-    d.name AS department_name
+    d.dept_name AS department_name
 FROM EMERGENCY_CASE ec
 JOIN PATIENT p ON p.patient_id = ec.patient_id
-JOIN AMBULANCE a ON a.ambulance_id = ec.ambulance_id
-JOIN HOSPITAL_BED hb ON hb.bed_id = ec.bed_id
-JOIN DEPARTMENT d ON d.department_id = hb.department_id
+LEFT JOIN HOSPITAL_BED hb ON hb.bed_id = ec.bed_id
+LEFT JOIN DEPARTMENT d ON d.department_id = hb.department_id
 WHERE ec.triage_level IN (1, 2)
   AND ec.case_status IN ('Open', 'Under Treatment', 'Admitted')$$
 

@@ -55,14 +55,14 @@ VALUES
 (8,'Asha Menon','Technician','9899001008','Morning',2);
 
 INSERT INTO AMBULANCE
-(ambulance_id, vehicle_number, driver_name, driver_phone, status, patient_id)
+(ambulance_id, vehicle_number, driver_name, driver_phone, status)
 VALUES
-(1,'KA01AB1001','Manoj Kumar','9900001001','On Call',1),
-(2,'KA01AB1002','Suresh Babu','9900001002','Available',2),
-(3,'KA01AB1003','Ramesh Naik','9900001003','On Call',3),
-(4,'KA01AB1004','Farhan Ali','9900001004','Available',4),
-(5,'KA01AB1005','Deepak Rao','9900001005','On Call',5),
-(6,'KA01AB1006','Kiran Joshi','9900001006','Available',6);
+(1,'KA01AB1001','Manoj Kumar','9900001001','On Call'),
+(2,'KA01AB1002','Suresh Babu','9900001002','Available'),
+(3,'KA01AB1003','Ramesh Naik','9900001003','On Call'),
+(4,'KA01AB1004','Farhan Ali','9900001004','Available'),
+(5,'KA01AB1005','Deepak Rao','9900001005','On Call'),
+(6,'KA01AB1006','Kiran Joshi','9900001006','Available');
 
 INSERT INTO HOSPITAL_BED (bed_id, ward_type, status, department_id) VALUES
 (1,'Emergency','Occupied',1),
@@ -82,15 +82,15 @@ INSERT INTO EMERGENCY_CASE
 (case_id, arrival_time, arrival_mode, chief_complaint, triage_level, case_status, ambulance_id, patient_id, bed_id)
 VALUES
 (1,'2026-10-24 08:15:00','Ambulance','Chest pain and breathlessness',1,'Under Treatment',1,1,1),
-(2,'2026-10-24 08:40:00','Walk-in','High fever and dehydration',3,'Admitted',2,2,2),
+(2,'2026-10-24 08:40:00','Walk-in','High fever and dehydration',3,'Admitted',NULL,2,2),
 (3,'2026-10-24 09:05:00','Ambulance','Head injury after fall',2,'Under Treatment',3,3,3),
 (4,'2026-10-24 09:25:00','Ambulance','Fractured left wrist',3,'Admitted',4,4,4),
 (5,'2026-10-24 10:10:00','Ambulance','Severe abdominal pain',2,'Under Treatment',5,5,5),
-(6,'2026-10-24 10:45:00','Walk-in','Allergic reaction',2,'Discharged',6,6,6),
-(7,'2026-10-24 11:20:00','Walk-in','Dizziness and weakness',4,'Discharged',2,7,7),
+(6,'2026-10-24 10:45:00','Walk-in','Allergic reaction',2,'Discharged',NULL,6,6),
+(7,'2026-10-24 11:20:00','Walk-in','Dizziness and weakness',4,'Discharged',NULL,7,7),
 (8,'2026-10-24 12:00:00','Ambulance','Breathing difficulty',1,'Under Treatment',1,8,8),
-(9,'2026-10-24 12:30:00','Walk-in','Minor burn injury',4,'Closed',4,9,9),
-(10,'2026-10-24 13:10:00','Walk-in','Migraine and nausea',5,'Closed',6,10,10);
+(9,'2026-10-24 12:30:00','Walk-in','Minor burn injury',4,'Closed',NULL,9,9),
+(10,'2026-10-24 13:10:00','Walk-in','Migraine and nausea',5,'Closed',NULL,10,10);
 
 INSERT INTO TREATMENT
 (treatment_id, treatment_description, start_time, end_time, doctor_id, case_id)

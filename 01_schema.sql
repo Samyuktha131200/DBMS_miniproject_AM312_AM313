@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS DEPARTMENT (
     dept_name VARCHAR(50) NOT NULL,
     location VARCHAR(50),
     head_doctor_id INT NULL,
-    CONSTRAINT uq_department_name UNIQUE (dept_name)
+    CONSTRAINT uq_department_name UNIQUE (dept_name),
+    CONSTRAINT uq_department_head UNIQUE (head_doctor_id)
 );
 
 CREATE TABLE IF NOT EXISTS DOCTOR (
@@ -66,10 +67,6 @@ CREATE TABLE IF NOT EXISTS AMBULANCE (
     driver_name VARCHAR(100),
     driver_phone VARCHAR(15),
     status VARCHAR(20) NOT NULL DEFAULT 'Available',
-    patient_id INT NOT NULL,
-    CONSTRAINT fk_ambulance_patient FOREIGN KEY (patient_id)
-        REFERENCES PATIENT(patient_id)
-        ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT chk_ambulance_status CHECK
         (status IN ('Available','On Call','Under Maintenance'))
 );
@@ -93,18 +90,18 @@ CREATE TABLE IF NOT EXISTS EMERGENCY_CASE (
     chief_complaint VARCHAR(255),
     triage_level INT NOT NULL,
     case_status VARCHAR(30) NOT NULL DEFAULT 'Open',
-    ambulance_id INT NOT NULL,
+    ambulance_id INT NULL,   -- NULL for walk-in cases (TRANSPORTS is optional)
     patient_id INT NOT NULL,
-    bed_id INT NOT NULL,
+    bed_id INT NULL,         -- NULL until a bed is assigned (ASSIGNED_TO is optional)
     CONSTRAINT fk_case_ambulance FOREIGN KEY (ambulance_id)
         REFERENCES AMBULANCE(ambulance_id)
-        ON UPDATE CASCADE ON DELETE RESTRICT,
+        ON UPDATE CASCADE ON DELETE SET NULL,
     CONSTRAINT fk_case_patient FOREIGN KEY (patient_id)
         REFERENCES PATIENT(patient_id)
         ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT fk_case_bed FOREIGN KEY (bed_id)
         REFERENCES HOSPITAL_BED(bed_id)
-        ON UPDATE CASCADE ON DELETE RESTRICT,
+        ON UPDATE CASCADE ON DELETE SET NULL,
     CONSTRAINT chk_case_triage CHECK (triage_level BETWEEN 1 AND 5),
     CONSTRAINT chk_case_status CHECK
         (case_status IN ('Open','Under Treatment','Admitted','Discharged','Closed'))

@@ -23,11 +23,16 @@ FROM NURSE_STAFF ns
 JOIN DEPARTMENT dep ON dep.department_id = ns.department_id
 ORDER BY dep.dept_name, ns.name;
 
--- 5. List ambulance details and the patient currently associated with each ambulance.
+-- 5. List ambulance details and the patients each ambulance has transported
+--    (via EMERGENCY_CASE, following the TRANSPORTS relationship).
 SELECT a.ambulance_id, a.vehicle_number, a.driver_name, a.status,
-       CONCAT(p.first_name, ' ', p.last_name) AS associated_patient
+       COUNT(ec.case_id) AS cases_transported,
+       GROUP_CONCAT(CONCAT(p.first_name, ' ', p.last_name)
+                    ORDER BY ec.arrival_time SEPARATOR ', ') AS patients_transported
 FROM AMBULANCE a
-JOIN PATIENT p ON p.patient_id = a.patient_id
+LEFT JOIN EMERGENCY_CASE ec ON ec.ambulance_id = a.ambulance_id
+LEFT JOIN PATIENT p ON p.patient_id = ec.patient_id
+GROUP BY a.ambulance_id, a.vehicle_number, a.driver_name, a.status
 ORDER BY a.ambulance_id;
 
 -- 6. List hospital beds and their departments.
@@ -43,8 +48,8 @@ SELECT ec.case_id, CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
        hb.bed_id, hb.ward_type
 FROM EMERGENCY_CASE ec
 JOIN PATIENT p ON p.patient_id = ec.patient_id
-JOIN AMBULANCE a ON a.ambulance_id = ec.ambulance_id
-JOIN HOSPITAL_BED hb ON hb.bed_id = ec.bed_id
+LEFT JOIN AMBULANCE a ON a.ambulance_id = ec.ambulance_id   -- walk-ins have no ambulance
+LEFT JOIN HOSPITAL_BED hb ON hb.bed_id = ec.bed_id
 ORDER BY ec.arrival_time DESC;
 
 -- 8. Find critical and high-priority cases that are not closed/discharged.

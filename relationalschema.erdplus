@@ -137,7 +137,7 @@
               "type": "VARCHAR(n)",
               "isPrimaryKey": false,
               "isOptional": false,
-              "isUnique": false,
+              "isUnique": true,
               "size": "50"
             },
             {
@@ -155,7 +155,7 @@
               "type": "INT",
               "isPrimaryKey": false,
               "isOptional": true,
-              "isUnique": false,
+              "isUnique": true,
               "isForeignKey": true,
               "foreignKeyProps": {
                 "foreignKeyGroupId": "24cb73e2-ea7f-4dd4-8e2e-f2bb24cf36cf",
@@ -380,7 +380,7 @@
               "type": "VARCHAR(n)",
               "isPrimaryKey": false,
               "isOptional": false,
-              "isUnique": false,
+              "isUnique": true,
               "size": "20"
             },
             {
@@ -409,23 +409,6 @@
               "isOptional": false,
               "isUnique": false,
               "size": "20"
-            },
-            {
-              "id": "fk_e8778543-3e83-45dc-8d36-8012406374c9",
-              "name": "fk_PATIENT",
-              "type": "None",
-              "isForeignKey": true,
-              "foreignKeyProps": {
-                "foreignKeyGroupId": "e4d1bff9-b5e1-474a-8f94-aa2777b57a1d",
-                "sourceTableId": "d45f3834-d813-4303-ad10-ad8b7828e00a",
-                "columns": [
-                  {
-                    "id": "fk_2219c804-3fe1-44c5-ba6d-ef93b4388a2e",
-                    "name": "patient_id",
-                    "type": "INT"
-                  }
-                ]
-              }
             }
           ],
           "numberOfGroups": 0,
@@ -464,7 +447,7 @@
               "isPrimaryKey": false,
               "isOptional": false,
               "isUnique": false,
-              "size": "20"
+              "size": "30"
             },
             {
               "id": "f4944017-c283-4eac-99ef-1d27efb7ea7c",
@@ -537,7 +520,7 @@
               "isPrimaryKey": false,
               "isOptional": false,
               "isUnique": false,
-              "size": "20"
+              "size": "30"
             },
             {
               "id": "420ceba9-65f3-4fd7-9599-2a363270f12c",
@@ -546,7 +529,7 @@
               "isPrimaryKey": false,
               "isOptional": true,
               "isUnique": false,
-              "size": "200"
+              "size": "255"
             },
             {
               "id": "3adead94-69c2-453a-b490-264625cd0dc1",
@@ -563,7 +546,7 @@
               "isPrimaryKey": false,
               "isOptional": false,
               "isUnique": false,
-              "size": "20"
+              "size": "30"
             },
             {
               "id": "fk_78a3084f-22c0-40aa-bbeb-6795ed0a28d5",
@@ -580,7 +563,8 @@
                     "type": "INT"
                   }
                 ]
-              }
+              },
+              "isOptional": true
             },
             {
               "id": "fk_5ddaa471-d361-4784-a528-b6a44415da18",
@@ -614,7 +598,8 @@
                     "type": "INT"
                   }
                 ]
-              }
+              },
+              "isOptional": true
             }
           ],
           "numberOfGroups": 0,
@@ -653,7 +638,7 @@
               "isPrimaryKey": false,
               "isOptional": true,
               "isUnique": false,
-              "size": "300"
+              "size": "255"
             },
             {
               "id": "edddf3cd-8561-4c36-aa00-516be34ddfed",
@@ -751,7 +736,7 @@
               "isPrimaryKey": false,
               "isOptional": true,
               "isUnique": false,
-              "size": "30"
+              "size": "50"
             },
             {
               "id": "6a4e01ef-c7dc-47bc-a8e8-a5aecf2d78f1",
@@ -773,11 +758,11 @@
             {
               "id": "26f20ba6-22e4-4044-ade5-6f5291b40f8e",
               "name": "unit_price",
-              "type": "VARCHAR(n)",
+              "type": "DECIMAL(n,m)",
               "isPrimaryKey": false,
               "isOptional": false,
               "isUnique": false,
-              "size": "8,2"
+              "size": "10,2"
             }
           ],
           "numberOfGroups": 0,
@@ -825,16 +810,16 @@
               "isPrimaryKey": false,
               "isOptional": true,
               "isUnique": false,
-              "size": "30"
+              "size": "50"
             },
             {
               "id": "c2badcb0-b561-4857-8546-3c088c2c858a",
               "name": "cost",
-              "type": "VARCHAR(n)",
+              "type": "DECIMAL(n,m)",
               "isPrimaryKey": false,
               "isOptional": false,
               "isUnique": false,
-              "size": "8,2"
+              "size": "10,2"
             }
           ],
           "numberOfGroups": 0,
@@ -873,7 +858,7 @@
               "isPrimaryKey": false,
               "isOptional": false,
               "isUnique": false,
-              "size": "50"
+              "size": "100"
             },
             {
               "id": "f3204a1d-b2fc-4ae6-9704-0f4324036954",
@@ -882,7 +867,7 @@
               "isPrimaryKey": false,
               "isOptional": false,
               "isUnique": false,
-              "size": "50"
+              "size": "100"
             },
             {
               "id": "45e2b929-7c79-43da-9314-8468cdcacb93",
@@ -988,7 +973,7 @@
               "isPrimaryKey": false,
               "isOptional": false,
               "isUnique": false,
-              "size": "20"
+              "size": "30"
             },
             {
               "id": "dacdc57e-79be-4fa5-be57-a5212f082b9d",
@@ -997,7 +982,7 @@
               "isPrimaryKey": false,
               "isOptional": true,
               "isUnique": false,
-              "size": "200"
+              "size": "255"
             },
             {
               "id": "fk_3830bcfa-3a11-4d3b-adcc-9d420cf3d247",
@@ -1083,7 +1068,7 @@
             {
               "id": "bb0729ce-dcb0-4278-80e3-4356fd68eaf6",
               "name": "total_amount",
-              "type": "VARCHAR(n)",
+              "type": "DECIMAL(n,m)",
               "isPrimaryKey": false,
               "isOptional": false,
               "isUnique": false,
@@ -1130,7 +1115,8 @@
                     "type": "INT"
                   }
                 ]
-              }
+              },
+              "isUnique": true
             }
           ],
           "numberOfGroups": 0,
@@ -1145,237 +1131,6 @@
       }
     ],
     "edges": [
-      {
-        "id": "0bd670d5-f6c5-455f-83d9-5cb4bbb24315",
-        "type": "Relational",
-        "source": "a9be2a27-bc25-4629-b749-a229feb8b4fb",
-        "targetHandle": "foreign-key-handle-",
-        "target": "b79f943e-cec9-4ee7-b2dd-eca58da4cb14",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "6e1953dc-9270-4f41-ba11-b8ee23d0405d",
-        "type": "Relational",
-        "source": "b79f943e-cec9-4ee7-b2dd-eca58da4cb14",
-        "targetHandle": "foreign-key-handle-",
-        "target": "a9be2a27-bc25-4629-b749-a229feb8b4fb",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "a7da9f5f-1219-4d3c-b482-6ac52dccd0c6",
-        "type": "Relational",
-        "source": "7774df4b-bda7-45ae-b1c1-87464ece0625",
-        "targetHandle": "foreign-key-handle-",
-        "target": "a9be2a27-bc25-4629-b749-a229feb8b4fb",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "17fe6f42-4f45-469c-8174-084d0600cf37",
-        "type": "Relational",
-        "source": "4d22ada8-600f-4174-96d2-2326e43f5222",
-        "targetHandle": "foreign-key-handle-",
-        "target": "a9be2a27-bc25-4629-b749-a229feb8b4fb",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "1fd42163-fb09-43e7-a5f4-bdf82644ef0a",
-        "type": "Relational",
-        "source": "c35adca9-21e0-4807-94a0-c4c79c34ee34",
-        "targetHandle": "foreign-key-handle-",
-        "target": "d45f3834-d813-4303-ad10-ad8b7828e00a",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "85331c4b-4976-4f7c-8d2e-229f46975160",
-        "type": "Relational",
-        "source": "c35adca9-21e0-4807-94a0-c4c79c34ee34",
-        "targetHandle": "foreign-key-handle-",
-        "target": "92ff356a-0f6f-42a3-94ed-367754c026dc",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "89038830-bb49-403c-9732-0aa80bd6d2a5",
-        "type": "Relational",
-        "source": "c35adca9-21e0-4807-94a0-c4c79c34ee34",
-        "targetHandle": "foreign-key-handle-",
-        "target": "4d22ada8-600f-4174-96d2-2326e43f5222",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "d896aaff-4e90-4e45-946f-a07ac77d6925",
-        "type": "Relational",
-        "source": "169676e3-d4fc-4672-b529-0b9fd4319682",
-        "targetHandle": "foreign-key-handle-",
-        "target": "c35adca9-21e0-4807-94a0-c4c79c34ee34",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "a0206a4d-07a9-464b-ab8c-33095e2fdc14",
-        "type": "Relational",
-        "source": "169676e3-d4fc-4672-b529-0b9fd4319682",
-        "targetHandle": "foreign-key-handle-",
-        "target": "b79f943e-cec9-4ee7-b2dd-eca58da4cb14",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "dde84bef-61b1-4865-bb33-24823f46b93c",
-        "type": "Relational",
-        "source": "f3eeeda3-b161-4677-87bb-8aecfe94675f",
-        "targetHandle": "foreign-key-handle-",
-        "target": "c35adca9-21e0-4807-94a0-c4c79c34ee34",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "40cb9666-bb8b-41f1-a934-427e8afb1390",
-        "type": "Relational",
-        "source": "f3eeeda3-b161-4677-87bb-8aecfe94675f",
-        "targetHandle": "foreign-key-handle-",
-        "target": "b79f943e-cec9-4ee7-b2dd-eca58da4cb14",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "1265fd1a-4255-4828-966b-01596e727cca",
-        "type": "Relational",
-        "source": "f3eeeda3-b161-4677-87bb-8aecfe94675f",
-        "targetHandle": "foreign-key-handle-",
-        "target": "2b856a37-cfd7-42de-9eb0-aa61edfb9aa8",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "81247c18-e123-4109-bafe-4cd30946d4de",
-        "type": "Relational",
-        "source": "0b705936-5aa8-4c12-976b-607bafc912d4",
-        "targetHandle": "foreign-key-handle-",
-        "target": "c35adca9-21e0-4807-94a0-c4c79c34ee34",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "bdc8d417-3d8e-48aa-bce4-5a49c185cabe",
-        "type": "Relational",
-        "source": "0b705936-5aa8-4c12-976b-607bafc912d4",
-        "targetHandle": "foreign-key-handle-",
-        "target": "c3466962-2ba6-4d5e-ad5e-0e2b2e357c45",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "2a04524d-fac4-42e2-9f9b-b3b33f43ad24",
-        "type": "Relational",
-        "source": "0b705936-5aa8-4c12-976b-607bafc912d4",
-        "targetHandle": "foreign-key-handle-",
-        "target": "b79f943e-cec9-4ee7-b2dd-eca58da4cb14",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "c5370cf7-bf9b-444f-a634-beb6ce965c15",
-        "type": "Relational",
-        "source": "73099a30-18dd-4524-a00d-5badadf823cc",
-        "targetHandle": "foreign-key-handle-",
-        "target": "c35adca9-21e0-4807-94a0-c4c79c34ee34",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": null
-        }
-      },
-      {
-        "id": "d45f3834-d813-4303-ad10-ad8b7828e00a->92ff356a-0f6f-42a3-94ed-367754c026dc_e4d1bff9-b5e1-474a-8f94-aa2777b57a1d",
-        "type": "Relational",
-        "source": "d45f3834-d813-4303-ad10-ad8b7828e00a",
-        "targetHandle": "foreign-key-handle-e4d1bff9-b5e1-474a-8f94-aa2777b57a1d",
-        "target": "92ff356a-0f6f-42a3-94ed-367754c026dc",
-        "markerStart": {
-          "type": "arrow"
-        },
-        "data": {
-          "foreignKeyProps": {
-            "foreignKeyGroupId": "e4d1bff9-b5e1-474a-8f94-aa2777b57a1d",
-            "sourceTableId": "d45f3834-d813-4303-ad10-ad8b7828e00a",
-            "columns": [
-              {
-                "id": "fk_2219c804-3fe1-44c5-ba6d-ef93b4388a2e",
-                "name": "patient_id",
-                "type": "INT"
-              }
-            ]
-          }
-        }
-      },
       {
         "id": "a9be2a27-bc25-4629-b749-a229feb8b4fb->b79f943e-cec9-4ee7-b2dd-eca58da4cb14_13a76464-5eed-4875-a0e7-7f04b6330f1b",
         "type": "Relational",
@@ -1715,6 +1470,29 @@
               {
                 "id": "fk_d591ccc5-c59c-41b2-8538-b4ff4d911a5f",
                 "name": "case_id",
+                "type": "INT"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "b79f943e-cec9-4ee7-b2dd-eca58da4cb14->a9be2a27-bc25-4629-b749-a229feb8b4fb_24cb73e2-ea7f-4dd4-8e2e-f2bb24cf36cf",
+        "type": "Relational",
+        "source": "b79f943e-cec9-4ee7-b2dd-eca58da4cb14",
+        "targetHandle": "foreign-key-handle-24cb73e2-ea7f-4dd4-8e2e-f2bb24cf36cf",
+        "target": "a9be2a27-bc25-4629-b749-a229feb8b4fb",
+        "markerStart": {
+          "type": "arrow"
+        },
+        "data": {
+          "foreignKeyProps": {
+            "foreignKeyGroupId": "24cb73e2-ea7f-4dd4-8e2e-f2bb24cf36cf",
+            "sourceTableId": "b79f943e-cec9-4ee7-b2dd-eca58da4cb14",
+            "columns": [
+              {
+                "id": "fk_9cd0d876-c8fd-4090-be8f-6e8647d6ad58",
+                "name": "head_doctor_id",
                 "type": "INT"
               }
             ]
