@@ -1,69 +1,89 @@
+DELIMITER $$
 
-USE hospital_management;
-
--- 1. VIEW: upcoming scheduled appointments
-CREATE OR REPLACE VIEW upcoming_appointments AS
-SELECT
-    a.appointment_id,
-    a.appointment_datetime,
-    a.status,
-    p.patient_id,
-    CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
-    d.doctor_id,
-    d.name AS doctor_name,
-    dep.department_name
-FROM appointment a
-JOIN patient p ON a.patient_id = p.patient_id
-JOIN doctor d ON a.doctor_id = d.doctor_id
-JOIN department dep ON d.department_id = dep.department_id
-WHERE a.status = 'Scheduled';
-
--- Test the view
-SELECT * FROM upcoming_appointments;
-
--- 2. STORED PROCEDURE: appointments for one patient
-DELIMITER //
-
-CREATE PROCEDURE GetPatientAppointments(
-    IN p_patient_id INT
-)
+CREATE PROCEDURE GetEmergencyCaseDetails(IN p_case_id INT)
 BEGIN
-    SELECT
-        a.appointment_id,
-        a.appointment_datetime,
-        a.status,
-        d.name AS doctor_name,
-        d.specialization
-    FROM appointment a
-    JOIN doctor d ON a.doctor_id = d.doctor_id
-    WHERE a.patient_id = p_patient_id
-    ORDER BY a.appointment_datetime;
-END //
+SELECT
+ec.case_id,
+p.patient_name,
+ec.emergency_type,
+ec.arrival_time,
+ec.case_status,
+d.doctor_name,
+t.severity,
+t.priority_level
+FROM emergency_case ec
+JOIN patient p ON ec.patient_id = p.patient_id
+LEFT JOIN doctor d ON ec.doctor_id = d.doctor_id
+LEFT JOIN triage t ON ec.case_id = t.case_id
+WHERE ec.case_id = p_case_id;
+END$$
 
-DELIMITER ;
+CREATE PROCEDURE GetPendingBills()
+BEGIN
+SELECT
+b.bill_id,
+b.case_id,
+p.patient_name,
+b.total_amount,
+b.payment_status
+FROM billing b
+JOIN emergency_case ec ON b.case_id = ec.case_id
+JOIN patient p ON ec.patient_id = p.patient_id
+WHERE b.payment_status IN ('Pending', 'Partially Paid');
+END$$
 
--- Test the procedure
-CALL GetPatientAppointments(1);
+CREATE VIEW emergency_case_overview AS
+SELECT
+ec.case_id,
+p.patient_name,
+ec.emergency_type,
+ec.arrival_time,
+ec.case_status,
+d.doctor_name,
+t.severity,
+t.priority_level
+FROM emergency_case ec
+JOIN patient p ON ec.patient_id = p.patient_id
+LEFT JOIN doctor d ON ec.doctor_id = d.doctor_id
+LEFT JOIN triage t ON ec.case_id = t.case_id$$
 
--- 3. TRIGGER: prevent appointments with unavailable doctors
-DELIMITER //
+CREATE VIEW available_beds AS
+SELECT
+bed_id,
+bed_number,
+bed_type,
+location
+FROM bed
+WHERE bed_status = 'Available'$$
 
-CREATE TRIGGER check_doctor_availability
-BEFORE INSERT ON appointment
+CREATE VIEW medicine_stock AS
+SELECT
+medicine_id,
+medicine_name,
+stock_quantity,
+unit_price,
+expiry_date
+FROM medicine
+WHERE stock_quantity > 0$$
+
+CREATE TRIGGER prevent_negative_medicine_stock
+BEFORE UPDATE ON medicine
 FOR EACH ROW
 BEGIN
-    DECLARE doctor_status VARCHAR(20);
+IF NEW.stock_quantity < 0 THEN
+SIGNAL SQLSTATE '45000'
+SET MESSAGE_TEXT = 'Medicine stock cannot be negative';
+END IF;
+END$$
 
-    SELECT availability_status
-    INTO doctor_status
-    FROM doctor
-    WHERE doctor_id = NEW.doctor_id;
-
-    IF doctor_status <> 'Available' THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT =
-                'Cannot schedule: doctor is unavailable';
-    END IF;
-END //
+CREATE TRIGGER prevent_negative_medicine_quantity
+BEFORE INSERT ON treatment_medicine
+FOR EACH ROW
+BEGIN
+IF NEW.quantity <= 0 THEN
+SIGNAL SQLSTATE '45000'
+SET MESSAGE_TEXT = 'Medicine quantity must be greater than zero';
+END IF;
+END$$
 
 DELIMITER ;
