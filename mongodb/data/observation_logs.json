@@ -1,0 +1,785 @@
+[
+  {
+    "schema_version": 1,
+    "case_id": 1,
+    "observed_at": "2026-10-24T08:00:00+05:30",
+    "source": "prehospital",
+    "recorded_by": {
+      "staff_id": 7
+    },
+    "vitals": {
+      "heart_rate": 118,
+      "resp_rate": 24,
+      "spo2": 93,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 150,
+        "diastolic": 95
+      },
+      "consciousness": "A",
+      "pain_score": 8
+    },
+    "additional": {
+      "ecg_rhythm": "sinus tachycardia"
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 1,
+    "observed_at": "2026-10-24T08:17:00+05:30",
+    "source": "triage",
+    "recorded_by": {
+      "staff_id": 1
+    },
+    "vitals": {
+      "heart_rate": 112,
+      "resp_rate": 22,
+      "spo2": 94,
+      "on_supplemental_o2": true,
+      "bp": {
+        "systolic": 146,
+        "diastolic": 92
+      },
+      "temp_c": 36.9,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 7
+    },
+    "notes": "Oxygen started at triage"
+  },
+  {
+    "schema_version": 1,
+    "case_id": 1,
+    "observed_at": "2026-10-24T08:45:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 2
+    },
+    "vitals": {
+      "heart_rate": 98,
+      "resp_rate": 20,
+      "spo2": 97,
+      "on_supplemental_o2": true,
+      "bp": {
+        "systolic": 138,
+        "diastolic": 88
+      },
+      "temp_c": 36.8,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 4
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 1,
+    "observed_at": "2026-10-24T09:45:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 2
+    },
+    "vitals": {
+      "heart_rate": 88,
+      "resp_rate": 18,
+      "spo2": 98,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 130,
+        "diastolic": 84
+      },
+      "temp_c": 36.7,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 2
+    },
+    "notes": "Oxygen weaned off"
+  },
+  {
+    "schema_version": 1,
+    "case_id": 2,
+    "observed_at": "2026-10-24T08:42:00+05:30",
+    "source": "triage",
+    "recorded_by": {
+      "staff_id": 1
+    },
+    "vitals": {
+      "heart_rate": 112,
+      "resp_rate": 22,
+      "spo2": 96,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 98,
+        "diastolic": 62
+      },
+      "temp_c": 39.2,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 3
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 2,
+    "observed_at": "2026-10-24T10:00:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 2
+    },
+    "vitals": {
+      "heart_rate": 100,
+      "resp_rate": 20,
+      "spo2": 97,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 108,
+        "diastolic": 68
+      },
+      "temp_c": 38.4,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 2
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 2,
+    "observed_at": "2026-10-24T11:00:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 2
+    },
+    "vitals": {
+      "heart_rate": 92,
+      "resp_rate": 18,
+      "spo2": 97,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 112,
+        "diastolic": 72
+      },
+      "temp_c": 37.8,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 1
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 3,
+    "observed_at": "2026-10-24T08:52:00+05:30",
+    "source": "prehospital",
+    "recorded_by": {
+      "staff_id": 7
+    },
+    "vitals": {
+      "heart_rate": 96,
+      "resp_rate": 18,
+      "spo2": 97,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 142,
+        "diastolic": 88
+      },
+      "consciousness": "C",
+      "gcs": 14,
+      "pain_score": 6
+    },
+    "additional": {
+      "pupils": {
+        "left": "reactive",
+        "right": "reactive"
+      }
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 3,
+    "observed_at": "2026-10-24T09:07:00+05:30",
+    "source": "triage",
+    "recorded_by": {
+      "staff_id": 1
+    },
+    "vitals": {
+      "heart_rate": 92,
+      "resp_rate": 18,
+      "spo2": 97,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 140,
+        "diastolic": 86
+      },
+      "temp_c": 36.6,
+      "consciousness": "C",
+      "gcs": 14,
+      "pain_score": 6
+    },
+    "additional": {
+      "pupils": {
+        "left": "reactive",
+        "right": "reactive"
+      }
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 3,
+    "observed_at": "2026-10-24T10:00:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 2
+    },
+    "vitals": {
+      "heart_rate": 88,
+      "resp_rate": 16,
+      "spo2": 98,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 136,
+        "diastolic": 84
+      },
+      "temp_c": 36.7,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 4
+    },
+    "additional": {
+      "pupils": {
+        "left": "reactive",
+        "right": "reactive"
+      }
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 3,
+    "observed_at": "2026-10-24T11:00:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 2
+    },
+    "vitals": {
+      "heart_rate": 84,
+      "resp_rate": 16,
+      "spo2": 98,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 132,
+        "diastolic": 82
+      },
+      "temp_c": 36.6,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 3
+    },
+    "additional": {
+      "pupils": {
+        "left": "reactive",
+        "right": "reactive"
+      }
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 4,
+    "observed_at": "2026-10-24T09:08:00+05:30",
+    "source": "prehospital",
+    "recorded_by": {
+      "staff_id": 7
+    },
+    "vitals": {
+      "heart_rate": 104,
+      "resp_rate": 20,
+      "spo2": 98,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 128,
+        "diastolic": 80
+      },
+      "consciousness": "A",
+      "pain_score": 8
+    },
+    "additional": {
+      "neurovascular_check": "distal pulses present, sensation intact"
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 4,
+    "observed_at": "2026-10-24T09:27:00+05:30",
+    "source": "triage",
+    "recorded_by": {
+      "staff_id": 1
+    },
+    "vitals": {
+      "heart_rate": 100,
+      "resp_rate": 18,
+      "spo2": 99,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 126,
+        "diastolic": 80
+      },
+      "temp_c": 36.8,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 7
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 4,
+    "observed_at": "2026-10-24T10:30:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 5
+    },
+    "vitals": {
+      "heart_rate": 84,
+      "resp_rate": 16,
+      "spo2": 99,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 122,
+        "diastolic": 78
+      },
+      "temp_c": 36.7,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 3
+    },
+    "notes": "Pain settled after immobilisation"
+  },
+  {
+    "schema_version": 1,
+    "case_id": 5,
+    "observed_at": "2026-10-24T09:57:00+05:30",
+    "source": "prehospital",
+    "recorded_by": {
+      "staff_id": 7
+    },
+    "vitals": {
+      "heart_rate": 110,
+      "resp_rate": 22,
+      "spo2": 97,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 104,
+        "diastolic": 68
+      },
+      "consciousness": "A",
+      "pain_score": 9
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 5,
+    "observed_at": "2026-10-24T10:12:00+05:30",
+    "source": "triage",
+    "recorded_by": {
+      "staff_id": 1
+    },
+    "vitals": {
+      "heart_rate": 108,
+      "resp_rate": 22,
+      "spo2": 97,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 102,
+        "diastolic": 66
+      },
+      "temp_c": 38.2,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 8
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 5,
+    "observed_at": "2026-10-24T11:00:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 2
+    },
+    "vitals": {
+      "heart_rate": 102,
+      "resp_rate": 20,
+      "spo2": 97,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 108,
+        "diastolic": 70
+      },
+      "temp_c": 38.0,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 5
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 5,
+    "observed_at": "2026-10-24T12:00:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 2
+    },
+    "vitals": {
+      "heart_rate": 96,
+      "resp_rate": 18,
+      "spo2": 98,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 112,
+        "diastolic": 72
+      },
+      "temp_c": 37.6,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 4
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 6,
+    "observed_at": "2026-10-24T10:47:00+05:30",
+    "source": "triage",
+    "recorded_by": {
+      "staff_id": 1
+    },
+    "vitals": {
+      "heart_rate": 106,
+      "resp_rate": 22,
+      "spo2": 95,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 112,
+        "diastolic": 70
+      },
+      "temp_c": 37.0,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 2
+    },
+    "additional": {
+      "rash": "urticarial, arms and trunk",
+      "angioedema": false
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 6,
+    "observed_at": "2026-10-24T11:15:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 2
+    },
+    "vitals": {
+      "heart_rate": 92,
+      "resp_rate": 18,
+      "spo2": 98,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 118,
+        "diastolic": 76
+      },
+      "temp_c": 36.9,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 1
+    },
+    "additional": {
+      "rash": "fading"
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 6,
+    "observed_at": "2026-10-24T11:30:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 2
+    },
+    "vitals": {
+      "heart_rate": 84,
+      "resp_rate": 16,
+      "spo2": 99,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 120,
+        "diastolic": 78
+      },
+      "temp_c": 36.8,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 0
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 7,
+    "observed_at": "2026-10-24T11:22:00+05:30",
+    "source": "triage",
+    "recorded_by": {
+      "staff_id": 1
+    },
+    "vitals": {
+      "heart_rate": 58,
+      "resp_rate": 16,
+      "spo2": 98,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 96,
+        "diastolic": 60
+      },
+      "temp_c": 36.5,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 0
+    },
+    "additional": {
+      "blood_glucose_mmol_l": 5.4,
+      "postural_bp_drop": true
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 7,
+    "observed_at": "2026-10-24T12:00:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 6
+    },
+    "vitals": {
+      "heart_rate": 66,
+      "resp_rate": 16,
+      "spo2": 98,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 108,
+        "diastolic": 68
+      },
+      "temp_c": 36.6,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 0
+    },
+    "notes": "Checked after assisted fall at 11:50, no injury"
+  },
+  {
+    "schema_version": 1,
+    "case_id": 8,
+    "observed_at": "2026-10-24T11:42:00+05:30",
+    "source": "prehospital",
+    "recorded_by": {
+      "staff_id": 7
+    },
+    "vitals": {
+      "heart_rate": 124,
+      "resp_rate": 30,
+      "spo2": 89,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 132,
+        "diastolic": 84
+      },
+      "consciousness": "A"
+    },
+    "additional": {
+      "peak_flow_l_min": 150,
+      "wheeze": "widespread"
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 8,
+    "observed_at": "2026-10-24T11:50:00+05:30",
+    "source": "prehospital",
+    "recorded_by": {
+      "staff_id": 7
+    },
+    "vitals": {
+      "heart_rate": 120,
+      "resp_rate": 28,
+      "spo2": 92,
+      "on_supplemental_o2": true,
+      "bp": {
+        "systolic": 130,
+        "diastolic": 82
+      },
+      "consciousness": "A"
+    },
+    "notes": "After oxygen and nebuliser"
+  },
+  {
+    "schema_version": 1,
+    "case_id": 8,
+    "observed_at": "2026-10-24T12:02:00+05:30",
+    "source": "triage",
+    "recorded_by": {
+      "staff_id": 1
+    },
+    "vitals": {
+      "heart_rate": 118,
+      "resp_rate": 24,
+      "spo2": 93,
+      "on_supplemental_o2": true,
+      "bp": {
+        "systolic": 128,
+        "diastolic": 80
+      },
+      "temp_c": 37.4,
+      "consciousness": "A",
+      "gcs": 15
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 8,
+    "observed_at": "2026-10-24T12:30:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 2
+    },
+    "vitals": {
+      "heart_rate": 128,
+      "resp_rate": 32,
+      "spo2": 89,
+      "on_supplemental_o2": true,
+      "bp": {
+        "systolic": 124,
+        "diastolic": 78
+      },
+      "temp_c": 37.5,
+      "consciousness": "A",
+      "gcs": 15
+    },
+    "notes": "Escalated to doctor on duty"
+  },
+  {
+    "schema_version": 1,
+    "case_id": 8,
+    "observed_at": "2026-10-24T13:00:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 2
+    },
+    "vitals": {
+      "heart_rate": 110,
+      "resp_rate": 24,
+      "spo2": 94,
+      "on_supplemental_o2": true,
+      "bp": {
+        "systolic": 126,
+        "diastolic": 80
+      },
+      "temp_c": 37.3,
+      "consciousness": "A",
+      "gcs": 15
+    },
+    "additional": {
+      "peak_flow_l_min": 220
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 8,
+    "observed_at": "2026-10-24T14:00:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 2
+    },
+    "vitals": {
+      "heart_rate": 98,
+      "resp_rate": 20,
+      "spo2": 96,
+      "on_supplemental_o2": true,
+      "bp": {
+        "systolic": 124,
+        "diastolic": 78
+      },
+      "temp_c": 37.1,
+      "consciousness": "A",
+      "gcs": 15
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 9,
+    "observed_at": "2026-10-24T12:32:00+05:30",
+    "source": "triage",
+    "recorded_by": {
+      "staff_id": 1
+    },
+    "vitals": {
+      "heart_rate": 96,
+      "resp_rate": 18,
+      "spo2": 99,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 124,
+        "diastolic": 80
+      },
+      "temp_c": 36.8,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 7
+    },
+    "additional": {
+      "burn": {
+        "area_percent_tbsa": 2,
+        "depth": "superficial",
+        "site": "right forearm"
+      }
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 10,
+    "observed_at": "2026-10-24T13:12:00+05:30",
+    "source": "triage",
+    "recorded_by": {
+      "staff_id": 1
+    },
+    "vitals": {
+      "heart_rate": 80,
+      "resp_rate": 16,
+      "spo2": 99,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 128,
+        "diastolic": 82
+      },
+      "temp_c": 36.7,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 8
+    },
+    "additional": {
+      "photophobia": true
+    }
+  },
+  {
+    "schema_version": 1,
+    "case_id": 10,
+    "observed_at": "2026-10-24T14:00:00+05:30",
+    "source": "ward",
+    "recorded_by": {
+      "staff_id": 6
+    },
+    "vitals": {
+      "heart_rate": 74,
+      "resp_rate": 14,
+      "spo2": 99,
+      "on_supplemental_o2": false,
+      "bp": {
+        "systolic": 122,
+        "diastolic": 78
+      },
+      "temp_c": 36.6,
+      "consciousness": "A",
+      "gcs": 15,
+      "pain_score": 2
+    }
+  }
+]

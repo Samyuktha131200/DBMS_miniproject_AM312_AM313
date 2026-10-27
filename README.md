@@ -24,7 +24,7 @@ The project focuses on applying database management concepts to a real-world hea
 | Relational database | MySQL |
 | Frontend | Next.js (planned) |
 | Backend/API | Next.js Route Handlers or API routes (planned) |
-| Second database | To be selected and justified |
+| Second database | MongoDB 6.0+ (incident reports, observation logs, clinical notes) — see [`mongodb/`](mongodb/README.md) |
 | Database design | Draw.io and ERDPlus |
 | Version control | Git and GitHub |
 
@@ -97,7 +97,32 @@ Run the scripts in the specified order because later scripts depend on the table
 
 **Note:** These scripts are intended for initial setup. For a fresh repeatable test, reset the development database before rerunning the schema and sample-data scripts. Do not use real patient information in the sample database.
 
-## 7. Advanced Database Features
+## 7. MongoDB Implementation
+
+The [`mongodb/`](mongodb/README.md) folder holds the NoSQL part of the system. MongoDB stores the data that is document-shaped and does not fit fixed tables well:
+
+| Collection | Contents | Why MongoDB |
+|---|---|---|
+| `incident_reports` | ambulance call-outs and in-hospital safety incidents | type-specific details, embedded timelines, several cases per incident, GeoJSON location |
+| `observation_logs` | vital-sign readings | sparse, high-volume readings with situation-specific extras; NEWS2 scoring in aggregation pipelines |
+| `clinical_notes` | clinical notes | long text with full-text search, optional SOAP sections, append-only amendment history |
+
+MongoDB documents refer to MySQL rows by ID (`case_id`, `doctor_id`, `staff_id`) and never copy MySQL data. The tests check every ID against `02_sample_data.sql`.
+
+Features: `$jsonSchema` validation, 11 indexes (unique, multikey, text, 2dsphere, partial), find/insert/update/delete operations, aggregation pipelines (`$setWindowFields`, `$facet`, `$geoNear`, `$unionWith`), full-text search, a multi-document transaction, and role-based access control (doctor, nurse, admin) enforced in both the API layer and as MongoDB roles.
+
+```bash
+cd mongodb
+npm install
+cp .env.example .env      # set MONGODB_URI
+npm run setup && npm run seed
+npm run queries           # run the demo queries
+npm test                  # tests (set MONGODB_TEST_URI to include the live-server tests)
+```
+
+Documentation: [data model](mongodb/docs/DATA_MODEL.md), [queries with expected output](mongodb/docs/QUERIES.md), [API integration](mongodb/docs/API_INTEGRATION.md).
+
+## 8. Advanced Database Features
 
 The project demonstrates the following advanced database concepts:
 
@@ -109,11 +134,10 @@ The project demonstrates the following advanced database concepts:
 
 Further scheduling validation and concurrency handling will be considered as the system develops.
 
-## 8. Planned Enhancements
+## 9. Planned Enhancements
 
 - Complete and validate the SQL schema against the ER diagram.
 - Expand the database to cover additional emergency room workflows where required.
-- Select and implement a suitable second database paradigm, such as NoSQL or vector search.
 - Develop a Next.js web interface with forms, tables, search, and filtering.
 - Integrate the frontend with the database through a backend/API layer.
 - Implement authentication and at least two appropriate user roles.
@@ -121,7 +145,7 @@ Further scheduling validation and concurrency handling will be considered as the
 - Test database constraints, triggers, transactions, and failure scenarios.
 - Document the architecture, data dictionary, test results, and application screenshots.
 
-## 9. Security and Data Integrity
+## 10. Security and Data Integrity
 
 The project aims to follow basic database and application security practices:
 
@@ -132,16 +156,16 @@ The project aims to follow basic database and application security practices:
 - Store passwords using secure password hashing when authentication is implemented.
 - Restrict access to sensitive medical information according to user roles.
 
-## 10. Project Documentation
+## 11. Project Documentation
 
 The repository includes the ER diagram and relational schema files. Further documentation will cover the problem statement, objectives, scope, database design, data dictionary, implementation decisions, important queries, system architecture, testing results, and future enhancements.
 
-## 11. Contributors
+## 12. Contributors
 
 Samyuktha Vadrevu:PES1UG24AM312
 Vaishali Krishnan:PES1UG24AM313
 
-## 12. Project Status
+## 13. Project Status
 
 **Current stage:** Initial database design and SQL implementation.
 

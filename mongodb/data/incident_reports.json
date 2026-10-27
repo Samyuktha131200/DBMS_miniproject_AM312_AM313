@@ -1,0 +1,267 @@
+[
+  {
+    "schema_version": 1,
+    "incident_no": "INC-2026-0001",
+    "category": "prehospital",
+    "incident_type": "medical_cardiac",
+    "case_ids": [1],
+    "occurred_at": "2026-10-24T07:45:00+05:30",
+    "reported_at": "2026-10-24T07:48:00+05:30",
+    "reported_by": { "staff_id": 7 },
+    "location": {
+      "description": "Fitness centre, 100 Feet Road, Indiranagar",
+      "geo": { "type": "Point", "coordinates": [77.6408, 12.9719] }
+    },
+    "severity": "high",
+    "summary": "Young adult collapsed on a treadmill complaining of central chest pain and breathlessness. Conscious and talking on arrival of crew.",
+    "details": {
+      "setting": "gym",
+      "witnessed": true,
+      "bystander_cpr": false,
+      "aed_applied": false,
+      "symptom_onset_min_before_call": 3
+    },
+    "timeline": [
+      { "event": "call_received", "at": "2026-10-24T07:48:00+05:30" },
+      { "event": "dispatched", "at": "2026-10-24T07:50:00+05:30" },
+      { "event": "on_scene", "at": "2026-10-24T07:59:00+05:30" },
+      { "event": "left_scene", "at": "2026-10-24T08:06:00+05:30" },
+      { "event": "arrived_hospital", "at": "2026-10-24T08:15:00+05:30", "note": "Pre-alert given to ED" }
+    ],
+    "status": "closed",
+    "created_at": "2026-10-24T08:20:00+05:30",
+    "updated_at": "2026-10-24T08:20:00+05:30"
+  },
+  {
+    "schema_version": 1,
+    "incident_no": "INC-2026-0002",
+    "category": "prehospital",
+    "incident_type": "trauma_fall",
+    "case_ids": [3],
+    "occurred_at": "2026-10-24T08:35:00+05:30",
+    "reported_at": "2026-10-24T08:38:00+05:30",
+    "reported_by": { "staff_id": 7 },
+    "location": {
+      "description": "Residential building, 4th Block, Jayanagar",
+      "geo": { "type": "Point", "coordinates": [77.5838, 12.925] }
+    },
+    "severity": "high",
+    "summary": "Fall from a ladder while changing a light fitting, struck head on concrete floor. Brief loss of consciousness reported by family.",
+    "details": {
+      "fall_height_m": 2.5,
+      "fall_from": "ladder",
+      "landing_surface": "concrete",
+      "loss_of_consciousness": true,
+      "loc_duration_min": 1,
+      "cervical_collar_applied": true
+    },
+    "timeline": [
+      { "event": "call_received", "at": "2026-10-24T08:38:00+05:30" },
+      { "event": "dispatched", "at": "2026-10-24T08:40:00+05:30" },
+      { "event": "on_scene", "at": "2026-10-24T08:50:00+05:30" },
+      { "event": "left_scene", "at": "2026-10-24T08:57:00+05:30" },
+      { "event": "arrived_hospital", "at": "2026-10-24T09:05:00+05:30" }
+    ],
+    "status": "closed",
+    "created_at": "2026-10-24T09:10:00+05:30",
+    "updated_at": "2026-10-24T09:10:00+05:30"
+  },
+  {
+    "schema_version": 1,
+    "incident_no": "INC-2026-0003",
+    "category": "prehospital",
+    "incident_type": "road_traffic",
+    "case_ids": [4],
+    "occurred_at": "2026-10-24T08:50:00+05:30",
+    "reported_at": "2026-10-24T08:53:00+05:30",
+    "reported_by": { "staff_id": 7 },
+    "location": {
+      "description": "Tumakuru Road, near Yeshwanthpur flyover",
+      "geo": { "type": "Point", "coordinates": [77.541, 13.0285] }
+    },
+    "severity": "moderate",
+    "summary": "Two-wheeler skidded after contact with a car at low speed. Rider fell on outstretched left hand; wrist deformity noted at scene.",
+    "details": {
+      "vehicles_involved": [
+        { "type": "two-wheeler", "role": "patient_vehicle" },
+        { "type": "car", "role": "other_party" }
+      ],
+      "helmet_worn": true,
+      "ejected": false,
+      "extrication_required": false,
+      "estimated_speed_kmh": 25
+    },
+    "timeline": [
+      { "event": "call_received", "at": "2026-10-24T08:53:00+05:30" },
+      { "event": "dispatched", "at": "2026-10-24T08:56:00+05:30" },
+      { "event": "on_scene", "at": "2026-10-24T09:06:00+05:30" },
+      { "event": "left_scene", "at": "2026-10-24T09:14:00+05:30" },
+      { "event": "arrived_hospital", "at": "2026-10-24T09:25:00+05:30" }
+    ],
+    "status": "closed",
+    "created_at": "2026-10-24T09:30:00+05:30",
+    "updated_at": "2026-10-24T09:30:00+05:30"
+  },
+  {
+    "schema_version": 1,
+    "incident_no": "INC-2026-0004",
+    "category": "prehospital",
+    "incident_type": "medical_abdominal",
+    "case_ids": [5],
+    "occurred_at": "2026-10-24T09:30:00+05:30",
+    "reported_at": "2026-10-24T09:40:00+05:30",
+    "reported_by": { "staff_id": 7 },
+    "location": {
+      "description": "Office complex, Koramangala 5th Block",
+      "geo": { "type": "Point", "coordinates": [77.619, 12.9345] }
+    },
+    "severity": "moderate",
+    "summary": "Sudden severe abdominal pain at work with two episodes of vomiting. Colleague called for help after pain did not settle.",
+    "details": {
+      "setting": "workplace",
+      "onset": "sudden",
+      "vomiting_episodes": 2,
+      "pain_location": "right lower abdomen"
+    },
+    "timeline": [
+      { "event": "call_received", "at": "2026-10-24T09:40:00+05:30" },
+      { "event": "dispatched", "at": "2026-10-24T09:42:00+05:30" },
+      { "event": "on_scene", "at": "2026-10-24T09:55:00+05:30" },
+      { "event": "left_scene", "at": "2026-10-24T10:02:00+05:30" },
+      { "event": "arrived_hospital", "at": "2026-10-24T10:10:00+05:30" }
+    ],
+    "status": "closed",
+    "created_at": "2026-10-24T10:15:00+05:30",
+    "updated_at": "2026-10-24T10:15:00+05:30"
+  },
+  {
+    "schema_version": 1,
+    "incident_no": "INC-2026-0005",
+    "category": "prehospital",
+    "incident_type": "medical_respiratory",
+    "case_ids": [8],
+    "occurred_at": "2026-10-24T11:20:00+05:30",
+    "reported_at": "2026-10-24T11:24:00+05:30",
+    "reported_by": { "staff_id": 7 },
+    "location": {
+      "description": "Apartment complex, Electronic City Phase 1",
+      "geo": { "type": "Point", "coordinates": [77.66, 12.8452] }
+    },
+    "severity": "critical",
+    "summary": "Acute breathlessness at home with audible wheeze, not relieved by own inhaler. Oxygen started by crew.",
+    "details": {
+      "setting": "home",
+      "known_respiratory_condition": "asthma",
+      "inhaler_used_before_arrival": true,
+      "oxygen_started_prehospital": true
+    },
+    "timeline": [
+      { "event": "call_received", "at": "2026-10-24T11:24:00+05:30" },
+      { "event": "dispatched", "at": "2026-10-24T11:26:00+05:30" },
+      { "event": "on_scene", "at": "2026-10-24T11:40:00+05:30", "note": "Traffic congestion on Hosur Road" },
+      { "event": "left_scene", "at": "2026-10-24T11:48:00+05:30" },
+      { "event": "arrived_hospital", "at": "2026-10-24T12:00:00+05:30" }
+    ],
+    "status": "under_review",
+    "follow_up": {
+      "actions": ["Review 16-minute call-to-scene time against the 15-minute target"]
+    },
+    "created_at": "2026-10-24T12:05:00+05:30",
+    "updated_at": "2026-10-24T13:30:00+05:30"
+  },
+  {
+    "schema_version": 1,
+    "incident_no": "INC-2026-0006",
+    "category": "in_hospital",
+    "incident_type": "equipment_device",
+    "case_ids": [2],
+    "occurred_at": "2026-10-24T09:45:00+05:30",
+    "reported_at": "2026-10-24T09:50:00+05:30",
+    "reported_by": { "staff_id": 2 },
+    "location": { "description": "Emergency department, bay 2" },
+    "severity": "low",
+    "harm_level": "none",
+    "summary": "IV cannula dislodged while the patient was being moved to a bed. Fluids paused for about ten minutes until a new cannula was placed.",
+    "details": {
+      "device": "peripheral IV cannula",
+      "during_activity": "patient transfer",
+      "therapy_interrupted_min": 10
+    },
+    "timeline": [
+      { "event": "detected", "at": "2026-10-24T09:45:00+05:30" },
+      { "event": "reported", "at": "2026-10-24T09:50:00+05:30" },
+      { "event": "reviewed", "at": "2026-10-24T10:30:00+05:30" },
+      { "event": "closed", "at": "2026-10-24T11:00:00+05:30" }
+    ],
+    "status": "closed",
+    "follow_up": {
+      "actions": ["Cannula re-sited", "Use securement dressing before any patient transfer"],
+      "reviewed_by": { "doctor_id": 1 },
+      "closed_at": "2026-10-24T11:00:00+05:30"
+    },
+    "created_at": "2026-10-24T09:50:00+05:30",
+    "updated_at": "2026-10-24T11:00:00+05:30"
+  },
+  {
+    "schema_version": 1,
+    "incident_no": "INC-2026-0007",
+    "category": "in_hospital",
+    "incident_type": "delay_in_care",
+    "case_ids": [3],
+    "occurred_at": "2026-10-24T09:15:00+05:30",
+    "reported_at": "2026-10-24T10:05:00+05:30",
+    "reported_by": { "doctor_id": 3 },
+    "location": { "description": "Radiology, CT scanner room" },
+    "severity": "moderate",
+    "harm_level": "none",
+    "summary": "CT head for a head-injury patient still not started 50 minutes after it was requested because of a scanner queue.",
+    "details": {
+      "expected_wait_min": 30,
+      "actual_wait_min": 50,
+      "cause": "scanner_queue",
+      "escalated_to": "radiology duty consultant"
+    },
+    "timeline": [
+      { "event": "detected", "at": "2026-10-24T10:00:00+05:30" },
+      { "event": "reported", "at": "2026-10-24T10:05:00+05:30" }
+    ],
+    "status": "open",
+    "created_at": "2026-10-24T10:05:00+05:30",
+    "updated_at": "2026-10-24T10:05:00+05:30"
+  },
+  {
+    "schema_version": 1,
+    "incident_no": "INC-2026-0008",
+    "category": "in_hospital",
+    "incident_type": "patient_fall",
+    "case_ids": [7],
+    "occurred_at": "2026-10-24T11:50:00+05:30",
+    "reported_at": "2026-10-24T11:55:00+05:30",
+    "reported_by": { "staff_id": 6 },
+    "location": { "description": "General Medicine ward, near washroom" },
+    "severity": "low",
+    "harm_level": "none",
+    "summary": "Patient slipped on a wet floor while walking to the washroom and was assisted to the floor by the nurse. No injury found on examination.",
+    "details": {
+      "witnessed": true,
+      "assisted_fall": true,
+      "injury_found": false,
+      "floor_wet": true,
+      "fall_risk_assessed_before": false
+    },
+    "timeline": [
+      { "event": "detected", "at": "2026-10-24T11:50:00+05:30" },
+      { "event": "reported", "at": "2026-10-24T11:55:00+05:30" },
+      { "event": "reviewed", "at": "2026-10-24T12:15:00+05:30" },
+      { "event": "closed", "at": "2026-10-24T12:30:00+05:30" }
+    ],
+    "status": "closed",
+    "follow_up": {
+      "actions": ["Wet-floor signage placed", "Fall-risk assessment completed for the patient"],
+      "reviewed_by": { "doctor_id": 5 },
+      "closed_at": "2026-10-24T12:30:00+05:30"
+    },
+    "created_at": "2026-10-24T11:55:00+05:30",
+    "updated_at": "2026-10-24T12:30:00+05:30"
+  }
+]
