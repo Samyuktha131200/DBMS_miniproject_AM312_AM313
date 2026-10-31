@@ -2,7 +2,7 @@
 
 A database-backed emergency-room management project built with **MySQL, MongoDB, and Next.js**. It brings patient and emergency-case records together with staff, treatment, bed, test, medicine, billing, vital-sign, clinical-note, and incident information.
 
-The project is designed to demonstrate more than basic create/read/update/delete operations. It uses relational constraints and transactions, MongoDB document validation and aggregation, and a web application that reads and writes to both databases through server-side API routes.
+It uses relational constraints and transactions, MongoDB document validation and aggregation, and a web application that reads and writes to both databases through server-side API routes.
 
 > **Academic demonstration only:** Sample records are synthetic. This application does not implement login or production-ready authorization. Do not expose it publicly or enter real patient information.
 
