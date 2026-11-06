@@ -4,7 +4,7 @@ import repositoryModule from "../../../mongodb/lib/repository.js";
 type MongoDb = Awaited<ReturnType<typeof dbModule.getDb>>;
 type ObjectId = { toString(): string };
 
-type DemoUser =
+type MongoUser =
   | { role: "doctor"; doctor_id: number }
   | { role: "nurse"; staff_id: number };
 
@@ -41,19 +41,19 @@ type CaseExists = (caseId: number) => Promise<boolean>;
 type MongoRepository = {
   recordObservation(
     db: MongoDb,
-    user: DemoUser,
+    user: MongoUser,
     input: ObservationInput,
     options: { caseExists: CaseExists },
   ): Promise<{ insertedId: ObjectId }>;
   writeNote(
     db: MongoDb,
-    user: DemoUser,
+    user: MongoUser,
     input: NoteInput,
     options: { caseExists: CaseExists },
   ): Promise<{ insertedId: ObjectId }>;
   reportIncident(
     db: MongoDb,
-    user: DemoUser,
+    user: MongoUser,
     input: IncidentInput,
     options: { caseExists: CaseExists },
   ): Promise<{ insertedId: ObjectId; document: { incident_no: string } }>;
@@ -69,16 +69,4 @@ export function getMongoDb() {
 
 export function getMongoRepository() {
   return repository;
-}
-
-export function getDemoUser(): DemoUser {
-  const role = process.env.MONGODB_DEMO_ROLE;
-  const id = Number(process.env.MONGODB_DEMO_ID);
-
-  if (!Number.isInteger(id) || id < 1) {
-    throw new Error("Set MONGODB_DEMO_ID to an existing doctor_id or staff_id in web/.env.local.");
-  }
-  if (role === "doctor") return { role, doctor_id: id };
-  if (role === "nurse") return { role, staff_id: id };
-  throw new Error("Set MONGODB_DEMO_ROLE to doctor or nurse in web/.env.local.");
 }

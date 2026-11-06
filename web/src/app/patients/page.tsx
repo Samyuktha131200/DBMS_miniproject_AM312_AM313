@@ -14,14 +14,17 @@ type PatientRecord = {
 };
 
 type PatientResponse = {
+  department: string;
   summary: {
     totalPatients: number;
     activeCases: number;
     criticalCases: number;
-    dischargedToday: number;
+    dischargedCases: number;
   };
   patients: PatientRecord[];
 };
+
+const caseStatuses = ["Open", "Under Treatment", "Admitted", "Discharged", "Closed"] as const;
 
 function riskLabel(triageLevel: number | null) {
   if (triageLevel === null) return "Not triaged";
@@ -42,6 +45,10 @@ export default function PatientsPage() {
   const [data, setData] = useState<PatientResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusError, setStatusError] = useState("");
+  const [statusDrafts, setStatusDrafts] = useState<Record<number, string>>({});
+  const [savingCaseId, setSavingCaseId] = useState<number | null>(null);
   const [refreshVersion, setRefreshVersion] = useState(0);
 
   useEffect(() => {
@@ -63,13 +70,44 @@ export default function PatientsPage() {
       }
     }
 
-    loadPatients();
-    return () => controller.abort();
+    void loadPatients();
+    const interval = window.setInterval(() => void loadPatients(), 15000);
+    return () => {
+      controller.abort();
+      window.clearInterval(interval);
+    };
   }, [refreshVersion]);
 
   function refresh() {
     setLoading(true);
     setRefreshVersion((version) => version + 1);
+  }
+
+  async function saveStatus(caseId: number) {
+    const status = statusDrafts[caseId];
+    if (!status) return;
+    setSavingCaseId(caseId);
+    setStatusError("");
+    setStatusMessage("");
+    try {
+      const response = await fetch(`/api/cases/${caseId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const result = await response.json() as { error?: string; status?: string };
+      if (!response.ok) throw new Error(result.error || `Status update failed (${response.status}).`);
+      setStatusMessage(`Case ${caseId} status changed to ${result.status}.`);
+      setStatusDrafts((drafts) => Object.fromEntries(
+        Object.entries(drafts).filter(([draftCaseId]) => Number(draftCaseId) !== caseId),
+      ));
+      setLoading(true);
+      setRefreshVersion((version) => version + 1);
+    } catch (updateError) {
+      setStatusError(updateError instanceof Error ? updateError.message : "Could not update the case status.");
+    } finally {
+      setSavingCaseId(null);
+    }
   }
 
   return (
@@ -78,7 +116,7 @@ export default function PatientsPage() {
         <p className={styles.eyebrow}>Live MySQL records</p>
         <h1 className={styles.pageTitle}>Patient records</h1>
         <p className={styles.pageSubtitle}>
-          Track registered patients, emergency case status, and triage risk from your MySQL database.
+          Track registered totals and view department-relevant emergency cases, triage risk, and discharge status from MySQL.
         </p>
         <div className={styles.pageActions}>
           <Link className={styles.primaryAction} href="/entries">New patient</Link>
@@ -86,6 +124,8 @@ export default function PatientsPage() {
       </header>
 
       {error ? <div className={styles.statusBanner} role="alert">{error}</div> : null}
+      {statusError ? <div className={styles.statusBanner} role="alert">{statusError}</div> : null}
+      {statusMessage ? <div className={styles.successMessage} role="status">{statusMessage}</div> : null}
       {loading && !data ? <div className={styles.loadingText}>Loading patient records from MySQL…</div> : null}
 
       {data ? (
@@ -94,7 +134,7 @@ export default function PatientsPage() {
             <div className={styles.metricCard}>
               <p>Registered patients</p>
               <div className={styles.value}>{data.summary.totalPatients}</div>
-              <div className={styles.meta}>MySQL patient records</div>
+              <div className={styles.meta}>MySQL patient records · all departments</div>
             </div>
             <div className={styles.metricCard}>
               <p>Active cases</p>
@@ -107,15 +147,15 @@ export default function PatientsPage() {
               <div className={styles.meta}>Active cases at triage level 1–2</div>
             </div>
             <div className={styles.metricCard}>
-              <p>Discharged today</p>
-              <div className={styles.value}>{data.summary.dischargedToday}</div>
-              <div className={styles.meta}>Based on case arrival date</div>
+              <p>Discharged cases</p>
+              <div className={styles.value}>{data.summary.dischargedCases}</div>
+              <div className={styles.meta}>Current status: Discharged</div>
             </div>
           </section>
 
           <section className={styles.panel}>
             <div className={styles.panelHead}>
-              <h3>Patient registry</h3>
+              <h3>{data.department} patient registry</h3>
               <button type="button" onClick={refresh} disabled={loading}>
                 {loading ? "Refreshing…" : "Refresh"}
               </button>
@@ -131,6 +171,7 @@ export default function PatientsPage() {
                     <th>Department</th>
                     <th>Triage risk</th>
                     <th>Case status</th>
+                    <th>Update status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -146,9 +187,36 @@ export default function PatientsPage() {
                         </span>
                       </td>
                       <td>{patient.status}</td>
+                      <td>
+                        {patient.caseId === null ? "—" : (
+                          <div className={styles.statusEditor}>
+                            <select
+                              aria-label={`New status for case ${patient.caseId}`}
+                              value={statusDrafts[patient.caseId] ?? patient.status}
+                              disabled={savingCaseId === patient.caseId}
+                              onChange={(event) => setStatusDrafts((drafts) => ({
+                                ...drafts,
+                                [patient.caseId!]: event.target.value,
+                              }))}
+                            >
+                              {caseStatuses.map((status) => <option key={status}>{status}</option>)}
+                            </select>
+                            <button
+                              type="button"
+                              disabled={
+                                savingCaseId === patient.caseId ||
+                                (statusDrafts[patient.caseId] ?? patient.status) === patient.status
+                              }
+                              onClick={() => void saveStatus(patient.caseId!)}
+                            >
+                              {savingCaseId === patient.caseId ? "Saving…" : "Save"}
+                            </button>
+                          </div>
+                        )}
+                      </td>
                     </tr>
                   )) : (
-                    <tr><td colSpan={6}>No patient records exist in MySQL yet. Use New patient to add one.</td></tr>
+                    <tr><td colSpan={7}>No patient records exist in MySQL yet. Use New patient to add one.</td></tr>
                   )}
                 </tbody>
               </table>

@@ -4,7 +4,7 @@ A database-backed emergency-room management project built with **MySQL, MongoDB,
 
 It uses relational constraints and transactions, MongoDB document validation and aggregation, and a web application that reads and writes to both databases through server-side API routes.
 
-> **Academic demonstration only:** Sample records are synthetic. This application does not implement login or production-ready authorization. Do not expose it publicly or enter real patient information.
+> **Academic demonstration only:** Sample records are synthetic. The staff-ID sign-in is passwordless demo access, not identity verification, and is disabled in production. Do not expose the app publicly or enter real patient information.
 
 ## Project goals and scope
 
@@ -109,20 +109,31 @@ The SQL scripts demonstrate:
 
 The web project is in [`web/`](./web/). It uses the Next.js App Router, React, TypeScript, and server-side Route Handlers. Browser pages call the API; the API connects to MySQL and MongoDB using environment configuration.
 
+### Frontend layout
+
+- **Sign-in** is a standalone page with Doctor/Nurse role selection and a staff-ID field.
+- After sign-in, a shared header shows the selected staff member, role, department, page navigation, and sign-out action.
+- **Doctor overview** emphasizes department cases, pending test orders, and doctor-authored notes. **Nurse overview** emphasizes triage/ward cases and observations recorded by that nurse. Both show current patient flow, beds, billing, and department safety records.
+- Patient records, notes, and incidents are department-scoped; the page heading and case lists reflect the signed-in department.
+- The overview polls MySQL and MongoDB every 5 seconds; patient records and MongoDB note/incident views refresh every 15/10 seconds.
+
 | Page / endpoint | Function |
 |---|---|
-| `/` | Dashboard with live/mock source selection, overview statistics, patient queue, alerts, incidents, and notes. **Export report** downloads the currently displayed dashboard data as CSV. |
-| `/patients` | Patient registry loaded from MySQL, with emergency-case status, triage risk, department, summary counts, and refresh. |
-| `/entries` | Creates a patient and emergency case in MySQL, then can add a vital observation, clinical note, or in-hospital incident to MongoDB. |
-| `/incidents`, `/notes` | Presentational pages with example content; they are not yet connected to the MongoDB collections. |
-| `GET /api/dashboard` | Reads dashboard data from MySQL and MongoDB; reports a warning when a database cannot be reached. |
-| `GET /api/patients` | Reads patient registry and summary data from MySQL. |
-| `POST /api/entries/sql` | Validates and transactionally inserts the patient and emergency case into MySQL. |
-| `POST /api/entries/mongo` | Checks the configured demo identity and MySQL case, then calls the MongoDB repository to validate and insert the selected document. |
+| `/login` | Select Doctor or Nurse and enter a matching MySQL staff ID. A signed, HTTP-only demo session identifies the staff member and department. |
+| `/` | Role-aware dashboard with live MySQL patient/case/bed/test/billing counts and department-scoped MongoDB observation, note, and incident data. Refreshes every 5 seconds; **Export report** downloads the current data as CSV. |
+| `/patients` | Auto-refreshing MySQL patient registry and status counts, with department-relevant cases, triage risk, discharge status, and a per-case status editor. |
+| `/entries` | Creates a patient and emergency case in MySQL, then can add a vital observation, clinical note, or in-hospital incident to MongoDB. MongoDB author/recorder is taken from the signed-in session. |
+| `/incidents`, `/notes` | Live MongoDB records for cases in the signed-in staff member's department; refresh every 10 seconds. |
+| `GET /api/auth`, `POST /api/auth`, `DELETE /api/auth` | Read the current session, look up a doctor/nurse staff ID in MySQL and issue a signed demo session, or sign out. |
+| `GET /api/dashboard` | Reads current status counts and department-scoped MongoDB records. Requires a valid staff session; returns an explicit error if either database is unavailable. |
+| `GET /api/patients` | Reads MySQL patient and case status data for the staff member's department. |
+| `PATCH /api/cases/{caseId}/status` | Requires a staff session and department/case association (unassigned ER queue cases are shared). Updates a case status transactionally; sets its bed to Occupied for active cases and releases it on discharge/closure when no other active case uses it. |
+| `POST /api/entries/sql` | Requires a staff session; validates and transactionally inserts the patient and emergency case into MySQL. |
+| `POST /api/entries/mongo` | Requires a staff session; checks the MySQL case and MongoDB role permission before inserting a document. |
 
-MongoDB repository logic lives in `mongodb/lib/repository.js` and shared query builders in `mongodb/lib/queries.js`. The API assigns the recorder/author from its configured demo identity, rather than trusting an identity sent in the form. MongoDB role permissions are represented in `mongodb/lib/access.js`.
+MySQL remains the source of truth for patient/case identity, hospital occupancy, triage, and discharge status; MongoDB stores observations, notes, and incidents. The dashboard combines both databases and polls for changes, so SQL edits and MongoDB document changes show up without a page reload. The schema has no discharge timestamp, so "Discharged cases" counts records whose current `case_status` is `Discharged`, not discharges during a particular day. MongoDB repository logic lives in `mongodb/lib/repository.js`; shared query builders and role permissions live in `mongodb/lib/queries.js` and `mongodb/lib/access.js`.
 
-> **Authentication limitation:** The current Next.js UI uses `MONGODB_DEMO_ROLE` and `MONGODB_DEMO_ID` as a fixed local demo identity; there is no login/session system yet. These settings are not authentication. MongoDB role definitions can be generated with `npm run roles` for a configured MongoDB server, but production-ready user authentication and authorization still need to be implemented before deployment.
+> **Authentication limitation:** Demo sign-in checks that the supplied role and staff ID exist in MySQL, but does not verify a person's identity because no password credentials are stored. The app signs the selected identity into an HTTP-only cookie and enforces that session on API reads and writes. Identity-only sign-in is disabled in production; replace it with real credential authentication before deployment. This demo is not suitable for real patient data.
 
 ## Requirements
 
@@ -147,7 +158,7 @@ In MySQL Workbench, open and execute these files from the repository root in ord
 3. `03_advanced_features.sql` — creates views, stored procedures, and triggers.
 4. `04_queries.sql` — optional: run the sample read queries and aggregates.
 
-The sample data uses fixed IDs and is intended for a fresh development database. Do not rerun it against a database that already contains those sample records unless you first reset that development database.
+The sample data uses fixed IDs and is intended for a fresh development database. Do not rerun it against a database that already contains those sample records unless you first reset that development database. To update a case, open **Patients**, select a status in the row's **Update status** control, and choose **Save**. Valid statuses are `Open`, `Under Treatment`, `Admitted`, `Discharged`, and `Closed`. Changes persist to MySQL and update live counts; a linked bed is released on discharge or closure. Cases without a bed/department assignment appear in the shared **Unassigned ER queue**.
 
 ### 3. Configure and initialize MongoDB
 
@@ -194,11 +205,10 @@ MYSQL_DATABASE=hospital_emergency_management
 MONGODB_URI=mongodb://localhost:27017
 MONGODB_DB=hospital_emergency_management
 
-MONGODB_DEMO_ROLE=nurse
-MONGODB_DEMO_ID=1
+SESSION_SECRET=replace-with-a-private-random-secret-at-least-32-characters
 ```
 
-Set `MONGODB_DEMO_ID` to an existing `NURSE_STAFF.staff_id` when the role is `nurse`, or to an existing `DOCTOR.doctor_id` when the role is `doctor`. Sample MySQL data includes nurse staff ID `1`. Keep `.env` and `.env.local` private; never commit real passwords or database URIs.
+Generate a session secret with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"` and set it as `SESSION_SECRET`. Sign in using any doctor/nurse ID present in the MySQL tables; sample data includes nurse staff ID `1`. Keep `.env` and `.env.local` private; never commit real passwords, session secrets, or database URIs.
 
 Install dependencies and start the development server:
 
@@ -207,7 +217,7 @@ npm.cmd install
 npm.cmd run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Create a patient and emergency case on **Data entry** before adding a MongoDB document, because that document must refer to an existing MySQL case ID.
+Open [http://localhost:3000](http://localhost:3000), choose **Doctor** or **Nurse**, and enter a staff ID from the matching MySQL table. Add a patient and emergency case on **Data entry** before adding a MongoDB document, because that document must refer to an existing MySQL case ID. The dashboard and patient registry update automatically when database records are added, edited, or removed.
 
 ## Main commands
 
@@ -265,14 +275,14 @@ The project requirements call for a meaningful problem, relational design, a sec
 - Database-level validation through MySQL constraints and MongoDB `$jsonSchema` validators, plus API input checks.
 - MongoDB role permissions for doctor, nurse, and admin operations.
 
-**Known gaps before real-world use:** There is no user login/session management; the web app currently uses a fixed local MongoDB demo identity. The app is for educational demonstration and is not suitable for real patient data or public deployment. The repository's requirements draft also asks teams to include project-specific screenshots and a detailed account of individual contributions in their final submission; add those materials as required by the course.
+**Known gaps before real-world use:** The staff-ID session is passwordless demo access, and direct identity selection does not prove who the user is. Add real user credentials, account recovery, and deployment-grade authorization before production. The app is for educational demonstration and is not suitable for real patient data or public deployment. The repository's requirements draft also asks teams to include project-specific screenshots and a detailed account of individual contributions in their final submission; add those materials as required by the course.
 
 ## Security and privacy
 
 - Use only synthetic or otherwise approved non-sensitive data.
 - Keep credentials in ignored environment files and never commit them.
 - Do not expose the demo server to public networks.
-- Implement authenticated sessions and enforce authorization for every route before any production use.
+- Replace the passwordless demo session with real authentication and review authorization before any production use.
 - NEWS2 and other clinical examples are educational database demonstrations, not medical advice or a clinical decision-support system.
 
 ## Repository map

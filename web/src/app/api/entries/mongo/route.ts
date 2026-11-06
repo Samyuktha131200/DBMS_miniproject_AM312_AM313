@@ -1,6 +1,7 @@
 import mysql from "mysql2/promise";
 import { NextRequest, NextResponse } from "next/server";
-import { getDemoUser, getMongoDb, getMongoRepository } from "@/lib/server-databases";
+import { getMongoDb, getMongoRepository } from "@/lib/server-databases";
+import { getStaffSession, unauthenticatedResponse } from "@/lib/staff-session";
 
 function mysqlConfig() {
   const host = process.env.MYSQL_HOST;
@@ -15,9 +16,8 @@ function mysqlConfig() {
 }
 
 export async function POST(request: NextRequest) {
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "Unauthenticated demo writes are disabled in production." }, { status: 403 });
-  }
+  const session = getStaffSession(request);
+  if (!session) return unauthenticatedResponse();
 
   let value: unknown;
   try {
@@ -34,7 +34,9 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const user = getDemoUser();
+    const user = session.role === "doctor"
+      ? { role: session.role, doctor_id: session.staffId }
+      : { role: session.role, staff_id: session.staffId };
     const db = await getMongoDb();
     const repository = getMongoRepository();
     const caseExists = async (caseId: number) => {

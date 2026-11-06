@@ -1,11 +1,12 @@
 import mysql from "mysql2/promise";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getStaffSession, unauthenticatedResponse } from "@/lib/staff-session";
 
 type SummaryDbRow = {
   total_patients: number | string;
   active_cases: number | string;
   critical_cases: number | string;
-  discharged_today: number | string;
+  discharged_cases: number | string;
 } & mysql.RowDataPacket;
 
 type PatientDbRow = {
@@ -35,7 +36,10 @@ function databaseError(error: unknown) {
   return "Could not load patient records from MySQL. Check the Next.js server log.";
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const session = getStaffSession(request);
+  if (!session) return unauthenticatedResponse();
+
   const host = process.env.MYSQL_HOST;
   if (!host) {
     return NextResponse.json({ error: "MYSQL_HOST is not set in web/.env.local." }, { status: 503 });
@@ -59,28 +63,48 @@ export async function GET() {
         (SELECT COUNT(*) FROM EMERGENCY_CASE
           WHERE triage_level <= 2
             AND case_status IN ('Open', 'Under Treatment', 'Admitted')) AS critical_cases,
-        (SELECT COUNT(*) FROM EMERGENCY_CASE
-          WHERE case_status = 'Discharged' AND DATE(arrival_time) = CURRENT_DATE()) AS discharged_today
+        (SELECT COUNT(*) FROM EMERGENCY_CASE WHERE case_status = 'Discharged') AS discharged_cases
     `);
     const [patientRows] = await connection.execute<PatientDbRow[]>(`
       SELECT
         p.patient_id, p.first_name, p.last_name,
-        e.case_id, e.case_status, e.triage_level, d.dept_name
+        e.case_id, e.case_status, e.triage_level,
+        COALESCE(d.dept_name,
+          (SELECT td_dept.dept_name FROM TREATMENT t
+           JOIN DOCTOR td ON td.doctor_id = t.doctor_id
+           JOIN DEPARTMENT td_dept ON td_dept.department_id = td.department_id
+           WHERE t.case_id = e.case_id ORDER BY t.start_time DESC LIMIT 1),
+          (SELECT od_dept.dept_name FROM TEST_ORDER o
+           JOIN DOCTOR od ON od.doctor_id = o.doctor_id
+           JOIN DEPARTMENT od_dept ON od_dept.department_id = od.department_id
+           WHERE o.case_id = e.case_id ORDER BY o.order_time DESC LIMIT 1),
+          'Unassigned ER queue') AS dept_name
       FROM PATIENT p
       LEFT JOIN EMERGENCY_CASE e ON e.patient_id = p.patient_id
       LEFT JOIN HOSPITAL_BED b ON b.bed_id = e.bed_id
       LEFT JOIN DEPARTMENT d ON d.department_id = b.department_id
+      WHERE b.department_id = ?
+        OR e.bed_id IS NULL
+        OR EXISTS (
+          SELECT 1 FROM TREATMENT t JOIN DOCTOR td ON td.doctor_id = t.doctor_id
+          WHERE t.case_id = e.case_id AND td.department_id = ?
+        )
+        OR EXISTS (
+          SELECT 1 FROM TEST_ORDER o JOIN DOCTOR od ON od.doctor_id = o.doctor_id
+          WHERE o.case_id = e.case_id AND od.department_id = ?
+        )
       ORDER BY e.arrival_time DESC, p.patient_id DESC
-    `);
+    `, [session.departmentId, session.departmentId, session.departmentId]);
 
     const summary = summaryRows[0];
     return NextResponse.json({
       source: "live",
+      department: session.departmentName,
       summary: {
         totalPatients: Number(summary?.total_patients ?? 0),
         activeCases: Number(summary?.active_cases ?? 0),
         criticalCases: Number(summary?.critical_cases ?? 0),
-        dischargedToday: Number(summary?.discharged_today ?? 0),
+        dischargedCases: Number(summary?.discharged_cases ?? 0),
       },
       patients: patientRows.map((row) => ({
         patientId: row.patient_id,

@@ -1,5 +1,6 @@
 import mysql from "mysql2/promise";
 import { NextRequest, NextResponse } from "next/server";
+import { getStaffSession, unauthenticatedResponse } from "@/lib/staff-session";
 
 type PatientEntry = {
   firstName: string;
@@ -76,9 +77,8 @@ function databaseError(error: unknown) {
 }
 
 export async function POST(request: NextRequest) {
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "Unauthenticated demo writes are disabled in production." }, { status: 403 });
-  }
+  const session = getStaffSession(request);
+  if (!session) return unauthenticatedResponse();
 
   let value: unknown;
   try {

@@ -161,20 +161,6 @@ export default function EntriesPage() {
 
   return (
     <main className={styles.page}>
-      <header className={styles.topBar}>
-        <div className={styles.brandWrap}>
-          <div className={styles.brandMark}>+</div>
-          <div>
-            <p className={styles.eyebrow}>Hospital ER</p>
-            <h1>Emergency Operations Center</h1>
-          </div>
-        </div>
-        <nav className={styles.nav} aria-label="Main navigation">
-          <Link href="/" className={styles.navItem}>Overview</Link>
-          <Link href="/entries" className={styles.navItemActive}>Data entry</Link>
-        </nav>
-      </header>
-
       <section className={styles.pageHeader}>
         <h2 className={styles.pageTitle}>Add a record</h2>
         <p className={styles.pageSubtitle}>
@@ -324,9 +310,9 @@ export default function EntriesPage() {
       </section>
 
       <p className={styles.demoNotice}>
-        Demo mode: MongoDB writes use the role and staff/doctor ID configured in <code>web/.env.local</code>. This is not a substitute for login or authorization in a deployed system.
+        Demo mode: MongoDB records are attributed to the staff member in the current role-based session. Identity-only sign-in is not password authentication.
       </p>
-      <Link href="/" className={styles.backLink}>← Back to dashboard</Link>
+      <Link href="/" className={styles.backLink}>Back to dashboard</Link>
     </main>
   );
 }
