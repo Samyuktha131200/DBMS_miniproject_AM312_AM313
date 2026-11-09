@@ -91,5 +91,5 @@ export function getStaffSession(request: NextRequest): StaffSession | null {
 }
 
 export function unauthenticatedResponse() {
-  return Response.json({ error: "Sign in with a doctor or nurse staff ID to continue." }, { status: 401 });
+  return Response.json({ error: "Sign in with your username and password to continue." }, { status: 401 });
 }

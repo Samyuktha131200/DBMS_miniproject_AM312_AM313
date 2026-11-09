@@ -4,7 +4,7 @@ A database-backed emergency-room management project built with **MySQL, MongoDB,
 
 It uses relational constraints and transactions, MongoDB document validation and aggregation, and a web application that reads and writes to both databases through server-side API routes.
 
-> **Academic demonstration only:** Sample records are synthetic. The staff-ID sign-in is passwordless demo access, not identity verification, and is disabled in production. Do not expose the app publicly or enter real patient information.
+> **Academic demonstration only:** Sample records are synthetic. The seeded demo accounts are for local use and do not verify real-world identities. Do not expose the app publicly or enter real patient information.
 
 ## Project goals and scope
 

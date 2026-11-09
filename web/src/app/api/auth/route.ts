@@ -1,8 +1,13 @@
 import mysql from "mysql2/promise";
 import { NextRequest, NextResponse } from "next/server";
+import { DUMMY_HASH, verifyPassword } from "@/lib/password";
 import { clearStaffSession, createStaffSession, getStaffSession, setStaffSessionCookie } from "@/lib/staff-session";
 
-type StaffRow = mysql.RowDataPacket & {
+type AccountRow = mysql.RowDataPacket & {
+  user_id: number;
+  password_hash: string;
+  role: string;
+  is_active: number;
   staff_id: number;
   name: string;
   department_id: number;
@@ -30,11 +35,28 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "Identity-only demo sign-in is disabled in production." }, { status: 403 });
-  }
+const MAX_FAILURES = 5;
+const LOCK_MS = 15 * 60 * 1000;
+const failures = new Map<string, { count: number; until: number }>();
 
+function isLocked(username: string) {
+  const entry = failures.get(username);
+  if (!entry) return false;
+  if (entry.until && entry.until > Date.now()) return true;
+  if (entry.until && entry.until <= Date.now()) failures.delete(username);
+  return false;
+}
+
+function recordFailure(username: string) {
+  const entry = failures.get(username) ?? { count: 0, until: 0 };
+  entry.count += 1;
+  if (entry.count >= MAX_FAILURES) entry.until = Date.now() + LOCK_MS;
+  failures.set(username, entry);
+}
+
+const INVALID_LOGIN = "Incorrect username or password.";
+
+export async function POST(request: NextRequest) {
   let body: unknown;
   try {
     body = await request.json();
@@ -42,51 +64,59 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Request body must be valid JSON." }, { status: 400 });
   }
   if (!body || typeof body !== "object" || Array.isArray(body)) {
-    return NextResponse.json({ error: "Choose a staff role and enter a valid staff ID." }, { status: 400 });
+    return NextResponse.json({ error: "Enter your username and password." }, { status: 400 });
   }
 
   const input = body as Record<string, unknown>;
-  const role = input.role;
-  const staffId = typeof input.staffId === "string" && /^\d+$/.test(input.staffId)
-    ? Number(input.staffId)
-    : typeof input.staffId === "number" ? input.staffId : Number.NaN;
-  if (
-    (role !== "doctor" && role !== "nurse") ||
-    !Number.isSafeInteger(staffId) ||
-    Number(staffId) < 1
-  ) {
-    return NextResponse.json({ error: "Choose doctor or nurse and enter a positive staff ID." }, { status: 400 });
+  const username = typeof input.username === "string" ? input.username.trim().toLowerCase() : "";
+  const password = typeof input.password === "string" ? input.password : "";
+  if (!/^[a-z0-9._-]{3,50}$/.test(username) || password.length < 1 || password.length > 200) {
+    return NextResponse.json({ error: "Enter your username and password." }, { status: 400 });
+  }
+  if (isLocked(username)) {
+    return NextResponse.json({ error: "Too many failed attempts. Try again in 15 minutes." }, { status: 429 });
   }
 
   let connection: mysql.Connection | undefined;
   try {
     connection = await mysql.createConnection(mysqlConfig());
-    const table = role === "doctor" ? "DOCTOR" : "NURSE_STAFF";
-    const idColumn = role === "doctor" ? "doctor_id" : "staff_id";
-    const [rows] = await connection.execute<StaffRow[]>(
-      `SELECT s.${idColumn} AS staff_id, s.name, s.department_id, d.dept_name
-       FROM ${table} s JOIN DEPARTMENT d ON d.department_id = s.department_id
-       WHERE s.${idColumn} = ?`,
-      [staffId],
+    const [rows] = await connection.execute<AccountRow[]>(
+      `SELECT a.user_id, a.password_hash, a.role, a.is_active,
+              COALESCE(a.doctor_id, a.staff_id) AS staff_id,
+              COALESCE(d.name, n.name) AS name,
+              dep.department_id, dep.dept_name
+       FROM USER_ACCOUNT a
+       LEFT JOIN DOCTOR d ON d.doctor_id = a.doctor_id
+       LEFT JOIN NURSE_STAFF n ON n.staff_id = a.staff_id
+       JOIN DEPARTMENT dep ON dep.department_id = COALESCE(d.department_id, n.department_id)
+       WHERE a.username = ?`,
+      [username],
     );
-    const staff = rows[0];
-    if (!staff) {
-      return NextResponse.json({ error: `No ${role} staff member has ID ${staffId}.` }, { status: 401 });
+    const account = rows[0];
+    const passwordOk = await verifyPassword(password, account?.password_hash ?? DUMMY_HASH);
+    if (!account || !passwordOk || !account.is_active || (account.role !== "doctor" && account.role !== "nurse")) {
+      recordFailure(username);
+      return NextResponse.json({ error: INVALID_LOGIN }, { status: 401 });
     }
 
+    failures.delete(username);
+    await connection.execute("UPDATE USER_ACCOUNT SET last_login = NOW() WHERE user_id = ?", [account.user_id]);
     const session = createStaffSession({
-      role,
-      staffId: staff.staff_id,
-      name: staff.name,
-      departmentId: staff.department_id,
-      departmentName: staff.dept_name,
+      role: account.role as "doctor" | "nurse",
+      staffId: account.staff_id,
+      name: account.name,
+      departmentId: account.department_id,
+      departmentName: account.dept_name,
     });
     const result = NextResponse.json({ session });
     setStaffSessionCookie(session, result);
     return result;
   } catch (error) {
     console.error("Staff sign-in failed", error);
-    const message = error instanceof Error ? error.message : "Could not sign in.";
+    const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+    const message = code === "ER_NO_SUCH_TABLE"
+      ? "The USER_ACCOUNT table is missing. Run 01_schema.sql and 02_sample_data.sql in MySQL Workbench."
+      : "Could not sign in. Check that MySQL is running and web/.env.local is set up.";
     return NextResponse.json({ error: message }, { status: 503 });
   } finally {
     if (connection) await connection.end();
