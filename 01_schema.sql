@@ -197,6 +197,34 @@ CREATE TABLE IF NOT EXISTS BILLING (
         (payment_status IN ('Pending','Partially Paid','Paid'))
 );
 
+-- Login accounts for the web application (one per doctor or nurse).
+-- Passwords are never stored: password_hash holds a salted scrypt hash
+-- in the form scrypt$N$r$p$<salt base64>$<hash base64>.
+-- The FKs have no ON UPDATE / ON DELETE action because MySQL does not allow
+-- referential actions on columns used in a CHECK constraint; a doctor or
+-- nurse with an account must have the account removed first.
+CREATE TABLE IF NOT EXISTS USER_ACCOUNT (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(10) NOT NULL,
+    doctor_id INT NULL UNIQUE,
+    staff_id INT NULL UNIQUE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login DATETIME NULL,
+    CONSTRAINT fk_account_doctor FOREIGN KEY (doctor_id)
+        REFERENCES DOCTOR(doctor_id),
+    CONSTRAINT fk_account_staff FOREIGN KEY (staff_id)
+        REFERENCES NURSE_STAFF(staff_id),
+    CONSTRAINT chk_account_role CHECK (role IN ('doctor','nurse')),
+    CONSTRAINT chk_account_link CHECK (
+        (role = 'doctor' AND doctor_id IS NOT NULL AND staff_id IS NULL) OR
+        (role = 'nurse' AND staff_id IS NOT NULL AND doctor_id IS NULL)
+    ),
+    CONSTRAINT chk_account_hash CHECK (password_hash LIKE 'scrypt$%')
+);
+
 CREATE INDEX idx_patient_name ON PATIENT(last_name, first_name);
 CREATE INDEX idx_case_arrival ON EMERGENCY_CASE(arrival_time);
 CREATE INDEX idx_case_status ON EMERGENCY_CASE(case_status);

@@ -171,3 +171,26 @@ INSERT INTO BILLING (bill_id, total_amount, payment_status, payment_mode, bill_d
 (8,3100.00,'Pending','Insurance','2026-10-24 13:00:00',8),
 (9,500.00,'Paid','Card','2026-10-24 13:10:00',9),
 (10,800.00,'Pending','Other','2026-10-24 14:00:00',10);
+
+-- Web login accounts. Passwords are stored only as salted scrypt hashes.
+-- Demo passwords (local demo only): doctor1..doctor8 -> Doctor@123,
+-- nurse1..nurse8 -> Nurse@123. Make new hashes with: node web/scripts/hash-password.mjs
+INSERT INTO USER_ACCOUNT
+(user_id, username, password_hash, role, doctor_id, staff_id)
+VALUES
+(1,'doctor1','scrypt$16384$8$1$RIGhJ5nrswwpCcUWwv4/zA==$VwZUreND0heHb6oBJG+gJ/jTYmN/h9i8mGgNSiq9XNiuwLYTKEmSYjURatgsp0NBt2Y/RQIHOm8fVYGJZ/9ypA==','doctor',1,NULL),
+(2,'doctor2','scrypt$16384$8$1$16vB9a0i0mjuJ1QQwdldFA==$LRoHyaS74oLHlerIdVFo/LR+RP2tOaQQP/0Gw8Uts1hjpyEuD4WR8akCwnyLt3EZeshyV4B8LZrxW98NozOsFw==','doctor',2,NULL),
+(3,'doctor3','scrypt$16384$8$1$w+NTdGN4mrG2rsjJuwRYFw==$IkYQeAtZQhCTNghrk3xlRQTk1uNV78Neujf9Zs8fGA7SR5sxvk3HkBRuK+8394dFCnqq/72zOXoBKHyTyWbj+g==','doctor',3,NULL),
+(4,'doctor4','scrypt$16384$8$1$9vUA449VqHSJWILKlKvH3w==$E18FPFB+aPeZMxkyvQOQ1ZPCKlY5wJw6rnESghdVfaHqlyIc9ts9EALF2i/MUVX3QxqQAfEEVOsTOA8x2p7uBA==','doctor',4,NULL),
+(5,'doctor5','scrypt$16384$8$1$xIok9pwj5fNa6zUZIA+bJw==$/e+JWM8vR1FDIshK6F3zDCvi14O20cQIIw8DqBbEI+jTYFXWiIuCeRv6zyEu9iwqGKdm7HkyTtxoLZDqx6JR6Q==','doctor',5,NULL),
+(6,'doctor6','scrypt$16384$8$1$RriGaBVRU4F3isiH94aclQ==$OwkMa8Xtju/nYPgucPVPUP1kDd9cNZYLcDfyqQx204eKFPvkSTbTM7cNjZrsRQ2VjvCpCnarVZj14j3EBSvaOg==','doctor',6,NULL),
+(7,'doctor7','scrypt$16384$8$1$f6Pr+ZBlivWir6yXm71JtA==$cclCRwA4eyut2GN0mmW1zv38DBDYyJl7PJW6zSwJp9oTRawbuqUi5iP4ya96EoKaXg9KsLWCJ9lOWuB4EdZUGw==','doctor',7,NULL),
+(8,'doctor8','scrypt$16384$8$1$oG0yn1wELD681EEmyYTAjg==$8zBGLPV/xD5X6DlCfQ0oaLxI6NeBEmxRa8gm9+vc4A09jf126zORQzI8ctgJxgvnblglJ17V48JA1tzvapWK+g==','doctor',8,NULL),
+(9,'nurse1','scrypt$16384$8$1$0JpqxJ1LgyqPNhnn983HMg==$6BOouWL/inBSV3BqQllLwhvoa5gFaoyBB3qJG7Sg6NQBknWkx8igDqXzi2HyGgwCnelDmX1R0zPYwgLOMsUUhw==','nurse',NULL,1),
+(10,'nurse2','scrypt$16384$8$1$UbROXulRi+jbxTWMp5FezQ==$9IfyDXsJ4RULu8COXdxeFCbDwsb+22LK3Lr+kauiYuydROVe/yemAY2iyrAD7NGCBec6JctRFzSPlORwpwPkog==','nurse',NULL,2),
+(11,'nurse3','scrypt$16384$8$1$5epYZ8tPWAtT8RTAobTPKg==$1xQORS7a1R2HuUkJxFTGPPFx0MY3GNV16sTYmV5KD0ChtUDZwf1FOEYR94WoJazxh/5hOSKFpXH9Yb/8ihQYrA==','nurse',NULL,3),
+(12,'nurse4','scrypt$16384$8$1$F16RP7ccUxxw0I78HNeTBw==$bzOvMPMNTt6Id5gKwaF5saqlPn8tGpuI42FoLEIJG5fCv2kHCGX6s01hfRgC23K88CvyFwz0gebFl9dPR5+lzw==','nurse',NULL,4),
+(13,'nurse5','scrypt$16384$8$1$ei2FuvM5CdFlbggypK1JFA==$0x9FzoE5K6wLOH0TGqNC3jzYV9g8yeALkje/OmI+vfpif8uVrV1cmcehoDQKXnllxDUbDfqz93cxyvhxNvy4SQ==','nurse',NULL,5),
+(14,'nurse6','scrypt$16384$8$1$2v6MbnwoRb0HFYaehKmYJA==$3HNsOab15TgvxRx8HZJDjVXQGrJGckyFgBa3PvNqMbKLW83WXC6lBxnKePBPEjWNmz8GIlDrCEtiqsDu5E3Zsg==','nurse',NULL,6),
+(15,'nurse7','scrypt$16384$8$1$MZ7U8W6FpW+6LThI5GCbuA==$w7t4HtuS0zcAK2J+xjiSjcIEreaYUzZ4a8HOH58fJKzpU2AiDSFt1nfcyitPtBE1Dp/9Ec88dkKEhahJsGOnwQ==','nurse',NULL,7),
+(16,'nurse8','scrypt$16384$8$1$ZRa9YMf13/Dk+/12WggdyA==$aSk5gsm77QSTv8GqUwO3SGnU6ZFqVS+9tIROyJ4NuIAI6LSs3FmSjq9L/q9HYFoUQSlrWvwmcsHDW4FE/83zTw==','nurse',NULL,8);
