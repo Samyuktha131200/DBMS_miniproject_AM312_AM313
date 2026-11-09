@@ -31,7 +31,7 @@ MySQL is the source of truth for patient and emergency-case identities. MongoDB 
 
 ### MySQL relational schema
 
-The MySQL database is named `hospital_emergency_management`. It has 13 tables:
+The MySQL database is named `hospital_emergency_management`. It has 14 tables:
 
 | Table | Purpose |
 |---|---|
@@ -48,6 +48,7 @@ The MySQL database is named `hospital_emergency_management`. It has 13 tables:
 | `PRESCRIPTION` | Medicine, dosage, frequency, issuing doctor, and emergency case. |
 | `TEST_ORDER` | A requested diagnostic test, ordering doctor, result status, and optional result. |
 | `BILLING` | Bill amount, payment details, and the emergency case being billed. Each case can have at most one bill. |
+| `USER_ACCOUNT` | Web login for one doctor or nurse: unique username, salted scrypt password hash (never the password), role, and the linked `DOCTOR` or `NURSE_STAFF` row. CHECK constraints ensure a doctor account links only to a doctor and a nurse account only to a nurse. |
 
 Primary and foreign keys define the relationships. Check constraints restrict values such as triage levels, case status, medicine stock, and billing amounts. Indexes support common lookups, including patient names, case arrival/status/triage, beds, medicines, treatments, prescriptions, and test orders.
 
@@ -70,6 +71,8 @@ erDiagram
     DIAGNOSTIC_TEST ||--o{ TEST_ORDER : requested
     DOCTOR ||--o{ TEST_ORDER : orders
     EMERGENCY_CASE ||--o| BILLING : billed
+    DOCTOR ||--o| USER_ACCOUNT : logs_in_as
+    NURSE_STAFF ||--o| USER_ACCOUNT : logs_in_as
 ```
 
 The complete schema, including all columns and constraints, is in [`01_schema.sql`](./01_schema.sql). The ER/design resources include [`hospital_er_diagram (1).drawio`](./hospital_er_diagram%20(1).drawio), [`relationalschema.erdplus`](./relationalschema.erdplus), and [`design.md`](./design.md).
@@ -96,13 +99,18 @@ More detail: [MongoDB data model](./mongodb/docs/DATA_MODEL.md), [query examples
 The SQL scripts demonstrate:
 
 - DDL: database/table/index creation, foreign keys, checks, and schema changes.
-- DML: inserts and updates in the sample-data script; select queries in the query script.
+- DDL: `ALTER TABLE ... ADD/DROP COLUMN` demonstration (query 39).
+- DML: inserts and updates in the sample-data script; INSERT, UPDATE and DELETE inside transactions, including a ROLLBACK demonstration (queries 36-37).
 - Joins across patients, cases, departments, staff, beds, medicines, tests, and billing.
-- Aggregates with `GROUP BY`, `HAVING`, `ORDER BY`, and subqueries.
-- A transaction in the web patient-entry API: patient and emergency-case rows are committed together or rolled back together.
+- Aggregates with `GROUP BY`, `HAVING`, `ORDER BY`, and a nested subquery (queries 1-28).
+- Correlated subqueries: `WHERE` comparison, `NOT EXISTS`, and scalar subqueries in `SELECT` (queries 29-31).
+- A CTE and a recursive CTE (hourly arrivals, including empty hours) (queries 32-33); window functions `RANK()` and a running `COUNT()` (query 34).
+- Two user-defined functions, `fn_case_test_cost` and `fn_patient_age` (query 35).
 - Five views for critical cases, available beds, staff directory, test-order summary, and medicine stock.
-- Three stored procedures for case details, a patient's cases, and pending bills.
-- Triggers preventing negative medicine stock and negative billing totals.
+- Four stored procedures, including `DischargeCase`, which runs as one transaction with an error handler that rolls back.
+- Triggers preventing negative medicine stock and billing totals, blocking a bed under maintenance, and keeping bed status in step with case admission and discharge.
+- Transactions in the web app: patient + case registration, and case status changes with row locks (`SELECT ... FOR UPDATE`).
+- Role-based access control in MySQL (`05_security.sql`): roles `er_doctor`, `er_nurse` and `er_app` with table- and column-level GRANTs; nurses cannot read `BILLING`.
 - Indexes for common search and relationship columns.
 
 ## Next.js application
@@ -111,7 +119,7 @@ The web project is in [`web/`](./web/). It uses the Next.js App Router, React, T
 
 ### Frontend layout
 
-- **Sign-in** is a standalone page with Doctor/Nurse role selection and a staff-ID field.
+- **Sign-in** is a standalone page with a username and password. The role (doctor or nurse) and department come from the account in MySQL.
 - After sign-in, a shared header shows the selected staff member, role, department, page navigation, and sign-out action.
 - **Doctor overview** emphasizes department cases, pending test orders, and doctor-authored notes. **Nurse overview** emphasizes triage/ward cases and observations recorded by that nurse. Both show current patient flow, beds, billing, and department safety records.
 - Patient records, notes, and incidents are department-scoped; the page heading and case lists reflect the signed-in department.
@@ -119,12 +127,12 @@ The web project is in [`web/`](./web/). It uses the Next.js App Router, React, T
 
 | Page / endpoint | Function |
 |---|---|
-| `/login` | Select Doctor or Nurse and enter a matching MySQL staff ID. A signed, HTTP-only demo session identifies the staff member and department. |
+| `/login` | Username and password, checked against `USER_ACCOUNT` (salted scrypt hashes). A signed, HTTP-only session identifies the staff member, role and department. Five failed attempts lock a username for 15 minutes. |
 | `/` | Role-aware dashboard with live MySQL patient/case/bed/test/billing counts and department-scoped MongoDB observation, note, and incident data. Refreshes every 5 seconds; **Export report** downloads the current data as CSV. |
 | `/patients` | Auto-refreshing MySQL patient registry and status counts, with department-relevant cases, triage risk, discharge status, and a per-case status editor. |
 | `/entries` | Creates a patient and emergency case in MySQL, then can add a vital observation, clinical note, or in-hospital incident to MongoDB. MongoDB author/recorder is taken from the signed-in session. |
 | `/incidents`, `/notes` | Live MongoDB records for cases in the signed-in staff member's department; refresh every 10 seconds. |
-| `GET /api/auth`, `POST /api/auth`, `DELETE /api/auth` | Read the current session, look up a doctor/nurse staff ID in MySQL and issue a signed demo session, or sign out. |
+| `GET /api/auth`, `POST /api/auth`, `DELETE /api/auth` | Read the current session, verify a username and password and issue a signed session, or sign out. |
 | `GET /api/dashboard` | Reads current status counts and department-scoped MongoDB records. Requires a valid staff session; returns an explicit error if either database is unavailable. |
 | `GET /api/patients` | Reads MySQL patient and case status data for the staff member's department. |
 | `PATCH /api/cases/{caseId}/status` | Requires a staff session and department/case association (unassigned ER queue cases are shared). Updates a case status transactionally; sets its bed to Occupied for active cases and releases it on discharge/closure when no other active case uses it. |
@@ -133,7 +141,16 @@ The web project is in [`web/`](./web/). It uses the Next.js App Router, React, T
 
 MySQL remains the source of truth for patient/case identity, hospital occupancy, triage, and discharge status; MongoDB stores observations, notes, and incidents. The dashboard combines both databases and polls for changes, so SQL edits and MongoDB document changes show up without a page reload. The schema has no discharge timestamp, so "Discharged cases" counts records whose current `case_status` is `Discharged`, not discharges during a particular day. MongoDB repository logic lives in `mongodb/lib/repository.js`; shared query builders and role permissions live in `mongodb/lib/queries.js` and `mongodb/lib/access.js`.
 
-> **Authentication limitation:** Demo sign-in checks that the supplied role and staff ID exist in MySQL, but does not verify a person's identity because no password credentials are stored. The app signs the selected identity into an HTTP-only cookie and enforces that session on API reads and writes. Identity-only sign-in is disabled in production; replace it with real credential authentication before deployment. This demo is not suitable for real patient data.
+**Authentication.** Each doctor and nurse has a row in `USER_ACCOUNT`. The password is stored only as a salted scrypt hash (`web/src/lib/password.ts`, Node's built-in `crypto.scrypt`), and the login compares hashes in constant time. An unknown username takes as long as a wrong password, so response times do not reveal which usernames exist. After sign-in, an HMAC-signed, HTTP-only, `SameSite=Strict` cookie holds the session for 8 hours, and every API route rejects requests without it (401).
+
+**Demo accounts** (synthetic data, local demo only):
+
+| Username | Password | Role |
+|---|---|---|
+| `doctor1` ... `doctor8` | `Doctor@123` | doctor, linked to `DOCTOR` 1-8 |
+| `nurse1` ... `nurse8` | `Nurse@123` | nurse, linked to `NURSE_STAFF` 1-8 |
+
+Create or reset a password with `node scripts/hash-password.mjs "<new password>"` (from `web/`) and store the printed hash in `USER_ACCOUNT.password_hash`.
 
 ## Requirements
 
@@ -155,8 +172,11 @@ In MySQL Workbench, open and execute these files from the repository root in ord
 
 1. `01_schema.sql` — creates the database, 13 tables, constraints, and indexes.
 2. `02_sample_data.sql` — loads synthetic sample records.
-3. `03_advanced_features.sql` — creates views, stored procedures, and triggers.
-4. `04_queries.sql` — optional: run the sample read queries and aggregates.
+3. `03_advanced_features.sql` — creates views, functions, stored procedures, and triggers.
+4. `04_queries.sql` — runs the sample queries (joins, aggregates, correlated subqueries, CTEs, window functions, transactions).
+5. `05_security.sql` — creates the MySQL roles `er_doctor`, `er_nurse` and `er_app` and their GRANTs (run as root).
+
+To rebuild an existing development database from scratch (for example after pulling a schema change such as the new `USER_ACCOUNT` table), first run `DROP DATABASE hospital_emergency_management;` and then run files 1-5 again.
 
 The sample data uses fixed IDs and is intended for a fresh development database. Do not rerun it against a database that already contains those sample records unless you first reset that development database. To update a case, open **Patients**, select a status in the row's **Update status** control, and choose **Save**. Valid statuses are `Open`, `Under Treatment`, `Admitted`, `Discharged`, and `Closed`. Changes persist to MySQL and update live counts; a linked bed is released on discharge or closure. Cases without a bed/department assignment appear in the shared **Unassigned ER queue**.
 
@@ -208,7 +228,7 @@ MONGODB_DB=hospital_emergency_management
 SESSION_SECRET=replace-with-a-private-random-secret-at-least-32-characters
 ```
 
-Generate a session secret with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"` and set it as `SESSION_SECRET`. Sign in using any doctor/nurse ID present in the MySQL tables; sample data includes nurse staff ID `1`. Keep `.env` and `.env.local` private; never commit real passwords, session secrets, or database URIs.
+Generate a session secret with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"` and set it as `SESSION_SECRET`. Sign in with one of the demo accounts above (for example `nurse1` / `Nurse@123`). Keep `.env` and `.env.local` private; never commit real passwords, session secrets, or database URIs.
 
 Install dependencies and start the development server:
 
@@ -217,7 +237,7 @@ npm.cmd install
 npm.cmd run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000), choose **Doctor** or **Nurse**, and enter a staff ID from the matching MySQL table. Add a patient and emergency case on **Data entry** before adding a MongoDB document, because that document must refer to an existing MySQL case ID. The dashboard and patient registry update automatically when database records are added, edited, or removed.
+Open [http://localhost:3000](http://localhost:3000) and sign in with a demo account (for example `doctor1` / `Doctor@123`). Add a patient and emergency case on **Data entry** before adding a MongoDB document, because that document must refer to an existing MySQL case ID. The dashboard and patient registry update automatically when database records are added, edited, or removed.
 
 ## Main commands
 
@@ -260,7 +280,7 @@ The integration tests create and remove a randomly named throw-away test databas
 
 - MongoDB component tests: run `npm.cmd test` from `mongodb/`.
 - Web code checks: run `npm.cmd run lint` and `npm.cmd run build` from `web/`.
-- SQL examples: run `04_queries.sql` in MySQL Workbench after schema and sample-data setup.
+- SQL examples: run `04_queries.sql` in MySQL Workbench after files 01-03; check roles with `SHOW GRANTS FOR er_nurse;` after `05_security.sql`.
 - MongoDB component test coverage and test-file details are documented in [`mongodb/README.md`](./mongodb/README.md).
 
 ## Course requirements and project status
@@ -270,26 +290,26 @@ The project requirements call for a meaningful problem, relational design, a sec
 - A real emergency-room workflow rather than only generic CRUD.
 - ER diagram and relational schema converted into a constrained MySQL implementation.
 - SQL plus MongoDB, selected for different data shapes and documented in the MongoDB data model.
-- At least four advanced concepts: MySQL transactions, views, stored procedures, triggers, and indexes; MongoDB adds validation, indexes, aggregation, and full-text search.
+- Advanced SQL: transactions (with ROLLBACK and row locks), views, stored procedures, user-defined functions, triggers, correlated subqueries, CTEs including a recursive CTE, window functions, and indexes; MongoDB adds validation, indexes, aggregation pipelines, full-text search, and a multi-document transaction.
 - A Next.js interface and Route Handlers connected to both databases using environment variables.
 - Database-level validation through MySQL constraints and MongoDB `$jsonSchema` validators, plus API input checks.
-- MongoDB role permissions for doctor, nurse, and admin operations.
+- Password login with doctor and nurse roles; role-based access control in MySQL (`05_security.sql` roles and GRANTs) and in MongoDB (`npm run roles`).
 
-**Known gaps before real-world use:** The staff-ID session is passwordless demo access, and direct identity selection does not prove who the user is. Add real user credentials, account recovery, and deployment-grade authorization before production. The app is for educational demonstration and is not suitable for real patient data or public deployment. The repository's requirements draft also asks teams to include project-specific screenshots and a detailed account of individual contributions in their final submission; add those materials as required by the course.
+**Known gaps before real-world use:** there is no account recovery or password-change screen, and the login lockout is kept in server memory. Review authorization and deployment settings before any production use. The app is for educational demonstration and is not suitable for real patient data or public deployment. The repository's requirements draft also asks teams to include project-specific screenshots and a detailed account of individual contributions in their final submission; add those materials as required by the course.
 
 ## Security and privacy
 
 - Use only synthetic or otherwise approved non-sensitive data.
 - Keep credentials in ignored environment files and never commit them.
 - Do not expose the demo server to public networks.
-- Replace the passwordless demo session with real authentication and review authorization before any production use.
+- Passwords are stored only as salted scrypt hashes; the demo passwords above are for local synthetic data only.
 - NEWS2 and other clinical examples are educational database demonstrations, not medical advice or a clinical decision-support system.
 
 ## Repository map
 
 ```text
-01_schema.sql, 02_sample_data.sql, 03_advanced_features.sql, 04_queries.sql
-  MySQL schema, sample records, advanced features, and query examples
+01_schema.sql, 02_sample_data.sql, 03_advanced_features.sql, 04_queries.sql, 05_security.sql
+  MySQL schema, sample records, advanced features, query examples, and roles/GRANTs
 
 mongodb/
   data/       MongoDB sample documents
