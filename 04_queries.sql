@@ -215,6 +215,148 @@ FROM EMERGENCY_CASE ec
 JOIN HOSPITAL_BED hb ON hb.bed_id = ec.bed_id
 WHERE hb.status = 'Available';
 
+-- ===========================================================================
+-- Advanced queries (29-40). Run after 03_advanced_features.sql, which
+-- creates the functions used in query 35.
+-- ===========================================================================
+
+-- 29. CORRELATED SUBQUERY: bills higher than the average bill for cases of the
+-- SAME triage level. The inner query re-runs for every outer row, because it
+-- uses that row's triage level (ec.triage_level).
+SELECT ec.case_id, ec.triage_level, b.total_amount
+FROM EMERGENCY_CASE ec
+JOIN BILLING b ON b.case_id = ec.case_id
+WHERE b.total_amount > (
+    SELECT AVG(b2.total_amount)
+    FROM BILLING b2
+    JOIN EMERGENCY_CASE ec2 ON ec2.case_id = b2.case_id
+    WHERE ec2.triage_level = ec.triage_level
+)
+ORDER BY ec.triage_level, b.total_amount DESC;
+
+-- 30. CORRELATED NOT EXISTS: doctors who have not administered any treatment.
+SELECT doc.doctor_id, doc.name, doc.specialization, doc.availability_status
+FROM DOCTOR doc
+WHERE NOT EXISTS (
+    SELECT 1 FROM TREATMENT t WHERE t.doctor_id = doc.doctor_id
+)
+ORDER BY doc.doctor_id;
+
+-- 31. CORRELATED SCALAR SUBQUERIES in the SELECT list: each patient's latest
+-- arrival and how many tests were ordered across all their cases.
+SELECT p.patient_id,
+       CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
+       (SELECT MAX(ec.arrival_time) FROM EMERGENCY_CASE ec
+        WHERE ec.patient_id = p.patient_id) AS latest_arrival,
+       (SELECT COUNT(*) FROM TEST_ORDER tor
+        JOIN EMERGENCY_CASE ec2 ON ec2.case_id = tor.case_id
+        WHERE ec2.patient_id = p.patient_id) AS tests_ordered
+FROM PATIENT p
+ORDER BY latest_arrival DESC;
+
+-- 32. CTE (WITH): department workload - active cases per available doctor.
+WITH dept_active_cases AS (
+    SELECT hb.department_id, COUNT(*) AS active_cases
+    FROM EMERGENCY_CASE ec
+    JOIN HOSPITAL_BED hb ON hb.bed_id = ec.bed_id
+    WHERE ec.case_status IN ('Open', 'Under Treatment', 'Admitted')
+    GROUP BY hb.department_id
+),
+dept_available_doctors AS (
+    SELECT department_id, COUNT(*) AS available_doctors
+    FROM DOCTOR
+    WHERE availability_status <> 'Unavailable'
+    GROUP BY department_id
+)
+SELECT d.dept_name,
+       COALESCE(c.active_cases, 0) AS active_cases,
+       COALESCE(a.available_doctors, 0) AS available_doctors,
+       ROUND(COALESCE(c.active_cases, 0) / NULLIF(a.available_doctors, 0), 2) AS cases_per_doctor
+FROM DEPARTMENT d
+LEFT JOIN dept_active_cases c ON c.department_id = d.department_id
+LEFT JOIN dept_available_doctors a ON a.department_id = d.department_id
+ORDER BY cases_per_doctor DESC;
+
+-- 33. RECURSIVE CTE: arrivals per hour on 24 Oct 2026, including hours with no
+-- arrivals. The recursive part generates one row per hour from 08:00 to 13:00.
+WITH RECURSIVE hours AS (
+    SELECT CAST('2026-10-24 08:00:00' AS DATETIME) AS slot
+    UNION ALL
+    SELECT slot + INTERVAL 1 HOUR FROM hours
+    WHERE slot < '2026-10-24 13:00:00'
+)
+SELECT h.slot AS hour_start,
+       COUNT(ec.case_id) AS arrivals,
+       COALESCE(SUM(ec.arrival_mode = 'Ambulance'), 0) AS by_ambulance
+FROM hours h
+LEFT JOIN EMERGENCY_CASE ec
+       ON ec.arrival_time >= h.slot
+      AND ec.arrival_time < h.slot + INTERVAL 1 HOUR
+GROUP BY h.slot
+ORDER BY h.slot;
+
+-- 34. WINDOW FUNCTIONS: priority rank within each arrival mode (triage 1 =
+-- most urgent) and a running count of arrivals through the day.
+SELECT case_id, arrival_mode, triage_level, arrival_time,
+       RANK() OVER (PARTITION BY arrival_mode ORDER BY triage_level) AS priority_rank,
+       COUNT(*) OVER (ORDER BY arrival_time) AS arrivals_so_far
+FROM EMERGENCY_CASE
+ORDER BY arrival_mode, priority_rank, arrival_time;
+
+-- 35. USER-DEFINED FUNCTIONS: age at arrival and diagnostic test cost per case,
+-- next to the amount actually billed.
+SELECT ec.case_id,
+       CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
+       fn_patient_age(p.dob, DATE(ec.arrival_time)) AS age_at_arrival,
+       fn_case_test_cost(ec.case_id) AS test_cost,
+       b.total_amount AS billed_amount
+FROM EMERGENCY_CASE ec
+JOIN PATIENT p ON p.patient_id = ec.patient_id
+LEFT JOIN BILLING b ON b.case_id = ec.case_id
+ORDER BY ec.case_id;
+
+-- 36. DML IN A TRANSACTION: INSERT a test order, UPDATE its result, then
+-- DELETE it, and COMMIT. The sample data is unchanged afterwards.
+START TRANSACTION;
+INSERT INTO TEST_ORDER (case_id, doctor_id, test_id)
+VALUES (1, 2, 1);
+SET @demo_order = LAST_INSERT_ID();
+UPDATE TEST_ORDER
+SET result_status = 'Completed', result_value = 'Normal sinus rhythm'
+WHERE test_order_id = @demo_order;
+SELECT * FROM TEST_ORDER WHERE test_order_id = @demo_order;
+DELETE FROM TEST_ORDER WHERE test_order_id = @demo_order;
+COMMIT;
+
+-- 37. ROLLBACK: delete case 1's prescriptions, look, then undo the delete.
+START TRANSACTION;
+DELETE FROM PRESCRIPTION WHERE case_id = 1;
+SELECT COUNT(*) AS case1_prescriptions_inside_transaction FROM PRESCRIPTION WHERE case_id = 1;
+ROLLBACK;
+SELECT COUNT(*) AS case1_prescriptions_after_rollback FROM PRESCRIPTION WHERE case_id = 1;
+
+-- 38. TRIGGER CHECK: this fails with 'Medicine stock cannot be negative'.
+-- UPDATE MEDICINE SET stock_quantity = -5 WHERE medicine_id = 1;
+
+-- 39. DDL: ALTER a table to add a column, use it, then DROP it again.
+ALTER TABLE MEDICINE ADD COLUMN reorder_level INT NOT NULL DEFAULT 20;
+SELECT medicine_id, medicine_name, stock_quantity, reorder_level,
+       stock_quantity < reorder_level AS needs_reorder
+FROM MEDICINE
+ORDER BY needs_reorder DESC, stock_quantity;
+ALTER TABLE MEDICINE DROP COLUMN reorder_level;
+
+-- 40. LOGIN ACCOUNTS: every doctor and nurse login and who it belongs to.
+-- (password_hash is deliberately not selected.)
+SELECT a.username, a.role,
+       COALESCE(d.name, n.name) AS staff_name,
+       dep.dept_name, a.is_active, a.last_login
+FROM USER_ACCOUNT a
+LEFT JOIN DOCTOR d ON d.doctor_id = a.doctor_id
+LEFT JOIN NURSE_STAFF n ON n.staff_id = a.staff_id
+JOIN DEPARTMENT dep ON dep.department_id = COALESCE(d.department_id, n.department_id)
+ORDER BY a.role, a.username;
+
 -- Optional advanced-feature checks (run after 03_advanced_features.sql):
 -- SELECT * FROM critical_emergency_cases;
 -- SELECT * FROM available_hospital_beds;
@@ -224,3 +366,5 @@ WHERE hb.status = 'Available';
 -- CALL GetEmergencyCaseDetails(1);
 -- CALL GetCasesForPatient(1);
 -- CALL GetPendingBills();
+-- CALL DischargeCase(5);   -- changes data: discharges case 5, frees its bed, raises the bill if missing
+-- SHOW GRANTS FOR er_nurse; -- after 05_security.sql
