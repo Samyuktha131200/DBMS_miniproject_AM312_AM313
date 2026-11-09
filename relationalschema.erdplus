@@ -1128,6 +1128,125 @@
         },
         "selected": false,
         "dragging": false
+      },
+      {
+        "id": "9a9f0e91-7a85-4107-abdf-72c0229932d0",
+        "type": "Table",
+        "position": {
+          "x": 1950.0,
+          "y": -14.662889518413593
+        },
+        "data": {
+          "label": "USER_ACCOUNT",
+          "isConnectable": false,
+          "columns": [
+            {
+              "id": "09cfdc82-5a44-4e91-af30-b08cbc0e4ad6",
+              "name": "user_id",
+              "type": "INT",
+              "isPrimaryKey": true,
+              "isOptional": false,
+              "isUnique": false
+            },
+            {
+              "id": "d3d17a63-e42d-4eef-b804-031994f22428",
+              "name": "username",
+              "type": "VARCHAR(n)",
+              "isPrimaryKey": false,
+              "isOptional": false,
+              "isUnique": true,
+              "size": "50"
+            },
+            {
+              "id": "25d3d15a-050d-4b77-87fa-294f4f8d2fb1",
+              "name": "password_hash",
+              "type": "VARCHAR(n)",
+              "isPrimaryKey": false,
+              "isOptional": false,
+              "isUnique": false,
+              "size": "255"
+            },
+            {
+              "id": "eff8e19d-b404-4b16-a509-e79a62f1dd77",
+              "name": "role",
+              "type": "VARCHAR(n)",
+              "isPrimaryKey": false,
+              "isOptional": false,
+              "isUnique": false,
+              "size": "10"
+            },
+            {
+              "id": "e60d49d8-58fc-4e32-9385-8b573ac7e52b",
+              "name": "is_active",
+              "type": "INT",
+              "isPrimaryKey": false,
+              "isOptional": false,
+              "isUnique": false
+            },
+            {
+              "id": "996f073a-9628-445a-9954-4ab69f20d6bf",
+              "name": "created_at",
+              "type": "DATETIME",
+              "isPrimaryKey": false,
+              "isOptional": false,
+              "isUnique": false
+            },
+            {
+              "id": "097e491a-b4d8-4efe-ab49-955518d27a84",
+              "name": "last_login",
+              "type": "DATETIME",
+              "isPrimaryKey": false,
+              "isOptional": true,
+              "isUnique": false
+            },
+            {
+              "id": "fk_6ecefb5e-f8d1-4f40-97c3-393028436c60",
+              "name": "fk_DOCTOR",
+              "type": "None",
+              "isForeignKey": true,
+              "foreignKeyProps": {
+                "foreignKeyGroupId": "9eb91ed9-cd96-4735-b797-c4cb57365306",
+                "sourceTableId": "b79f943e-cec9-4ee7-b2dd-eca58da4cb14",
+                "columns": [
+                  {
+                    "id": "fk_9cd0d876-c8fd-4090-be8f-6e8647d6ad58",
+                    "name": "doctor_id",
+                    "type": "INT"
+                  }
+                ]
+              },
+              "isUnique": true,
+              "isOptional": true
+            },
+            {
+              "id": "fk_45db06e5-904c-4919-a227-6517b72ef345",
+              "name": "fk_NURSE_STAFF",
+              "type": "None",
+              "isForeignKey": true,
+              "foreignKeyProps": {
+                "foreignKeyGroupId": "76b02c4d-82f8-4ada-a0d9-3aeb6009ef91",
+                "sourceTableId": "7774df4b-bda7-45ae-b1c1-87464ece0625",
+                "columns": [
+                  {
+                    "id": "fk_27a64b6f-ee0f-499f-bfb4-2f3c01994c07",
+                    "name": "staff_id",
+                    "type": "INT"
+                  }
+                ]
+              },
+              "isUnique": true,
+              "isOptional": true
+            }
+          ],
+          "numberOfGroups": 0,
+          "isSelected": false
+        },
+        "measured": {
+          "width": 240,
+          "height": 251
+        },
+        "selected": false,
+        "dragging": false
       }
     ],
     "edges": [
@@ -1493,6 +1612,52 @@
               {
                 "id": "fk_9cd0d876-c8fd-4090-be8f-6e8647d6ad58",
                 "name": "head_doctor_id",
+                "type": "INT"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "b79f943e-cec9-4ee7-b2dd-eca58da4cb14->9a9f0e91-7a85-4107-abdf-72c0229932d0_9eb91ed9-cd96-4735-b797-c4cb57365306",
+        "type": "Relational",
+        "source": "b79f943e-cec9-4ee7-b2dd-eca58da4cb14",
+        "targetHandle": "foreign-key-handle-9eb91ed9-cd96-4735-b797-c4cb57365306",
+        "target": "9a9f0e91-7a85-4107-abdf-72c0229932d0",
+        "markerStart": {
+          "type": "arrow"
+        },
+        "data": {
+          "foreignKeyProps": {
+            "foreignKeyGroupId": "9eb91ed9-cd96-4735-b797-c4cb57365306",
+            "sourceTableId": "b79f943e-cec9-4ee7-b2dd-eca58da4cb14",
+            "columns": [
+              {
+                "id": "fk_9cd0d876-c8fd-4090-be8f-6e8647d6ad58",
+                "name": "doctor_id",
+                "type": "INT"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "7774df4b-bda7-45ae-b1c1-87464ece0625->9a9f0e91-7a85-4107-abdf-72c0229932d0_76b02c4d-82f8-4ada-a0d9-3aeb6009ef91",
+        "type": "Relational",
+        "source": "7774df4b-bda7-45ae-b1c1-87464ece0625",
+        "targetHandle": "foreign-key-handle-76b02c4d-82f8-4ada-a0d9-3aeb6009ef91",
+        "target": "9a9f0e91-7a85-4107-abdf-72c0229932d0",
+        "markerStart": {
+          "type": "arrow"
+        },
+        "data": {
+          "foreignKeyProps": {
+            "foreignKeyGroupId": "76b02c4d-82f8-4ada-a0d9-3aeb6009ef91",
+            "sourceTableId": "7774df4b-bda7-45ae-b1c1-87464ece0625",
+            "columns": [
+              {
+                "id": "fk_27a64b6f-ee0f-499f-bfb4-2f3c01994c07",
+                "name": "staff_id",
                 "type": "INT"
               }
             ]
