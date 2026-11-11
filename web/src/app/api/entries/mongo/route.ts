@@ -97,9 +97,10 @@ export async function POST(request: NextRequest) {
 
     throw new Error("Unsupported MongoDB entry type.");
   } catch (error) {
-    const message = error instanceof Error ? error.message : "MongoDB write failed.";
     console.error("MongoDB insert failed", error);
     const { status, body } = getMongoRepository().toHttpError(error);
-    return NextResponse.json({ error: status === 500 ? message : body.message }, { status });
+    // Unexpected errors keep their details in the server log only.
+    const message = status === 500 ? "Could not save to MongoDB. Check the server log." : body.message;
+    return NextResponse.json({ error: message }, { status });
   }
 }
