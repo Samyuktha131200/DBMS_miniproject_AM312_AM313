@@ -1,10 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { useStaffSession } from "@/components/app-shell";
 import styles from "./page.module.css";
 
 type MongoKind = "observation" | "note" | "incident";
+type ClinicalOrderKind = "prescription" | "diagnostic_test";
+type ClinicalOrderOptions = {
+  cases: Array<{
+    caseId: number;
+    patientName: string;
+    chiefComplaint: string | null;
+    status: string;
+  }>;
+  medicines: Array<{ medicineId: number; name: string; type: string | null; stockQuantity: number }>;
+  tests: Array<{ testId: number; name: string; type: string | null; cost: number }>;
+};
 
 function localDateTime() {
   const date = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000);
@@ -51,6 +63,7 @@ async function postJson(url: string, data: Record<string, unknown>) {
 }
 
 export default function EntriesPage() {
+  const { user } = useStaffSession();
   const [mongoKind, setMongoKind] = useState<MongoKind>("observation");
   const [observedAt, setObservedAt] = useState("");
   const [occurredAt, setOccurredAt] = useState("");
@@ -61,6 +74,38 @@ export default function EntriesPage() {
   const [sqlError, setSqlError] = useState("");
   const [mongoError, setMongoError] = useState("");
   const [newCaseId, setNewCaseId] = useState<number | null>(null);
+  const [clinicalOptions, setClinicalOptions] = useState<ClinicalOrderOptions | null>(null);
+  const [clinicalLoading, setClinicalLoading] = useState(false);
+  const [clinicalError, setClinicalError] = useState("");
+  const [orderBusy, setOrderBusy] = useState<ClinicalOrderKind | null>(null);
+  const [orderMessage, setOrderMessage] = useState("");
+  const [orderError, setOrderError] = useState("");
+  const [testResultStatus, setTestResultStatus] = useState("Ordered");
+
+  useEffect(() => {
+    if (user?.role !== "doctor") return;
+    const controller = new AbortController();
+
+    async function loadClinicalOptions() {
+      setClinicalLoading(true);
+      setClinicalError("");
+      try {
+        const response = await fetch("/api/clinical-orders", { cache: "no-store", signal: controller.signal });
+        const result = await response.json() as ClinicalOrderOptions & { error?: string };
+        if (!response.ok) throw new Error(result.error || `Clinical options request failed (${response.status}).`);
+        setClinicalOptions(result);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setClinicalError(error instanceof Error ? error.message : "Could not load prescription and test options.");
+        }
+      } finally {
+        if (!controller.signal.aborted) setClinicalLoading(false);
+      }
+    }
+
+    void loadClinicalOptions();
+    return () => controller.abort();
+  }, [user?.role]);
 
   async function submitSql(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -159,12 +204,49 @@ export default function EntriesPage() {
     }
   }
 
+  async function submitClinicalOrder(event: FormEvent<HTMLFormElement>, kind: ClinicalOrderKind) {
+    event.preventDefault();
+    const formElement = event.currentTarget;
+    setOrderBusy(kind);
+    setOrderError("");
+    setOrderMessage("");
+    const form = new FormData(formElement);
+    const data: Record<string, unknown> = kind === "prescription"
+      ? {
+          kind,
+          caseId: Number(form.get("caseId")),
+          medicineId: Number(form.get("medicineId")),
+          dosage: form.get("dosage"),
+          frequency: form.get("frequency"),
+        }
+      : {
+          kind,
+          caseId: Number(form.get("caseId")),
+          testId: Number(form.get("testId")),
+          resultStatus: form.get("resultStatus"),
+          resultValue: form.get("resultValue"),
+        };
+
+    try {
+      const result = await postJson("/api/clinical-orders", data);
+      setOrderMessage(kind === "prescription"
+        ? `Prescription ${result.id} saved in MySQL.`
+        : `Diagnostic test order ${result.id} saved in MySQL.`);
+      if (kind === "diagnostic_test") setTestResultStatus("Ordered");
+      formElement.reset();
+    } catch (error) {
+      setOrderError(error instanceof Error ? error.message : "The clinical order could not be saved.");
+    } finally {
+      setOrderBusy(null);
+    }
+  }
+
   return (
     <main className={styles.page}>
       <section className={styles.pageHeader}>
         <h2 className={styles.pageTitle}>Add a record</h2>
         <p className={styles.pageSubtitle}>
-          Create a patient and emergency case in MySQL, then add observations, a clinical note, or an in-hospital incident to MongoDB.
+          Create a patient and emergency case, add clinical records, and let doctors prescribe medication or order diagnostic tests.
         </p>
       </section>
 
@@ -309,8 +391,119 @@ export default function EntriesPage() {
         </article>
       </section>
 
+      {user?.role === "doctor" ? (
+        <section className={styles.clinicalOrderGrid} aria-label="Doctor prescriptions and diagnostic tests">
+          <article className={styles.entryCard}>
+            <div className={styles.entryCardHeader}>
+              <span className={`${styles.databaseBadge} ${styles.sqlBadge}`}>MySQL</span>
+              <h3>Prescribe medication</h3>
+              <p>Record the medicine, dosage, and frequency for an active case. Your doctor account is attached automatically.</p>
+            </div>
+            <form className={styles.entryForm} onSubmit={(event) => void submitClinicalOrder(event, "prescription")}>
+              <div className={styles.formGrid}>
+                <label className={styles.fullWidth}>Emergency case
+                  <select name="caseId" defaultValue="" required disabled={clinicalLoading || !clinicalOptions?.cases.length}>
+                    <option value="" disabled>Select a case</option>
+                    {clinicalOptions?.cases.map((item) => (
+                      <option key={item.caseId} value={item.caseId}>
+                        CASE-{String(item.caseId).padStart(3, "0")} · {item.patientName} · {item.chiefComplaint || item.status}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className={styles.fullWidth}>Medicine
+                  <select name="medicineId" defaultValue="" required disabled={clinicalLoading || !clinicalOptions?.medicines.length}>
+                    <option value="" disabled>Select a medicine</option>
+                    {clinicalOptions?.medicines.map((medicine) => (
+                      <option key={medicine.medicineId} value={medicine.medicineId}>
+                        {medicine.name}{medicine.type ? ` · ${medicine.type}` : ""} · stock {medicine.stockQuantity}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>Dosage<input name="dosage" maxLength={100} placeholder="e.g. 500 mg" required /></label>
+                <label>Frequency<input name="frequency" maxLength={100} placeholder="e.g. Every 6 hours" required /></label>
+              </div>
+              <button
+                className={styles.submitButton}
+                type="submit"
+                disabled={orderBusy !== null || clinicalLoading || !clinicalOptions?.cases.length || !clinicalOptions.medicines.length}
+              >
+                {orderBusy === "prescription" ? "Saving prescription…" : "Save prescription"}
+              </button>
+            </form>
+          </article>
+
+          <article className={styles.entryCard}>
+            <div className={styles.entryCardHeader}>
+              <span className={`${styles.databaseBadge} ${styles.sqlBadge}`}>MySQL</span>
+              <h3>Order diagnostic test</h3>
+              <p>Choose an active case and test. Completed tests require a result before they can be saved.</p>
+            </div>
+            <form className={styles.entryForm} onSubmit={(event) => void submitClinicalOrder(event, "diagnostic_test")}>
+              <div className={styles.formGrid}>
+                <label className={styles.fullWidth}>Emergency case
+                  <select name="caseId" defaultValue="" required disabled={clinicalLoading || !clinicalOptions?.cases.length}>
+                    <option value="" disabled>Select a case</option>
+                    {clinicalOptions?.cases.map((item) => (
+                      <option key={item.caseId} value={item.caseId}>
+                        CASE-{String(item.caseId).padStart(3, "0")} · {item.patientName} · {item.chiefComplaint || item.status}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className={styles.fullWidth}>Diagnostic test
+                  <select name="testId" defaultValue="" required disabled={clinicalLoading || !clinicalOptions?.tests.length}>
+                    <option value="" disabled>Select a test</option>
+                    {clinicalOptions?.tests.map((test) => (
+                      <option key={test.testId} value={test.testId}>
+                        {test.name}{test.type ? ` · ${test.type}` : ""} · ₹{test.cost.toFixed(2)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>Test status
+                  <select
+                    name="resultStatus"
+                    value={testResultStatus}
+                    onChange={(event) => setTestResultStatus(event.target.value)}
+                  >
+                    <option>Ordered</option>
+                    <option>In Progress</option>
+                    <option>Completed</option>
+                  </select>
+                </label>
+                <label>Result{testResultStatus === "Completed" ? " (required)" : ""}
+                  <input name="resultValue" maxLength={255} required={testResultStatus === "Completed"} />
+                </label>
+              </div>
+              <button
+                className={styles.submitButton}
+                type="submit"
+                disabled={orderBusy !== null || clinicalLoading || !clinicalOptions?.cases.length || !clinicalOptions.tests.length}
+              >
+                {orderBusy === "diagnostic_test" ? "Saving test order…" : "Save diagnostic test"}
+              </button>
+            </form>
+          </article>
+          {clinicalLoading ? <p className={styles.orderStatus} role="status">Loading cases, medicines, and diagnostic tests…</p> : null}
+          {clinicalError ? <p className={`${styles.orderStatus} ${styles.errorMessage}`} role="alert">{clinicalError}</p> : null}
+          {clinicalOptions && !clinicalOptions.cases.length ? (
+            <p className={styles.orderStatus}>There are no active cases available for your department.</p>
+          ) : null}
+          {clinicalOptions && !clinicalOptions.medicines.length ? (
+            <p className={styles.orderStatus}>No medicines are available in the catalog.</p>
+          ) : null}
+          {clinicalOptions && !clinicalOptions.tests.length ? (
+            <p className={styles.orderStatus}>No diagnostic tests are available in the catalog.</p>
+          ) : null}
+          {orderError ? <p className={`${styles.orderStatus} ${styles.errorMessage}`} role="alert">{orderError}</p> : null}
+          {orderMessage ? <p className={`${styles.orderStatus} ${styles.successMessage}`} role="status">{orderMessage}</p> : null}
+        </section>
+      ) : null}
+
       <p className={styles.demoNotice}>
-        Demo mode: MongoDB records are attributed to the staff member in the current role-based session. Identity-only sign-in is not password authentication.
+        Demo mode: MongoDB records are attributed to the staff member in the current role-based session. Shared role passwords are not individual identity authentication.
       </p>
       <Link href="/" className={styles.backLink}>Back to dashboard</Link>
     </main>

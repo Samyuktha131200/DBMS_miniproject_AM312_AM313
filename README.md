@@ -129,15 +129,20 @@ The web project is in [`web/`](./web/). It uses the Next.js App Router, React, T
 |---|---|
 | `/login` | Username and password, checked against `USER_ACCOUNT` (salted scrypt hashes). A signed, HTTP-only session identifies the staff member, role and department. Five failed attempts lock a username for 15 minutes. |
 | `/` | Role-aware dashboard with live MySQL patient/case/bed/test/billing counts and department-scoped MongoDB observation, note, and incident data. Refreshes every 5 seconds; **Export report** downloads the current data as CSV. |
-| `/patients` | Auto-refreshing MySQL patient registry and status counts, with department-relevant cases, triage risk, discharge status, and a per-case status editor. |
-| `/entries` | Creates a patient and emergency case in MySQL, then can add a vital observation, clinical note, or in-hospital incident to MongoDB. MongoDB author/recorder is taken from the signed-in session. |
+| `/patients` | Auto-refreshing MySQL patient registry and status counts, with department-relevant cases, triage risk, a per-case status editor, and a guarded patient-delete action for fully discharged and paid records. |
+| `/payments` | Shared doctor/nurse billing view for department cases; create missing bills, update payment status/method, and remove patient records only when every case is discharged and paid. |
+| `/entries` | Creates a patient and emergency case in MySQL, then can add a vital observation, clinical note, or in-hospital incident to MongoDB. Doctors also get forms to prescribe catalog medicines and order diagnostic tests for active department cases. |
 | `/incidents`, `/notes` | Live MongoDB records for cases in the signed-in staff member's department; refresh every 10 seconds. |
 | `GET /api/auth`, `POST /api/auth`, `DELETE /api/auth` | Read the current session, verify a username and password and issue a signed session, or sign out. |
 | `GET /api/dashboard` | Reads current status counts and department-scoped MongoDB records. Requires a valid staff session; returns an explicit error if either database is unavailable. |
 | `GET /api/patients` | Reads MySQL patient and case status data for the staff member's department. |
+| `GET`, `POST`, `PATCH /api/payments` | Requires a staff session; lists department billing, creates bills, and updates payment status/method. |
+| `DELETE /api/patients/{patientId}` | Requires a staff session and department access; deletes the patient directly, with database guards requiring all cases discharged and paid and foreign-key cascades removing bills and case history. |
 | `PATCH /api/cases/{caseId}/status` | Requires a staff session and department/case association (unassigned ER queue cases are shared). Updates a case status transactionally; sets its bed to Occupied for active cases and releases it on discharge/closure when no other active case uses it. |
 | `POST /api/entries/sql` | Requires a staff session; validates and transactionally inserts the patient and emergency case into MySQL. |
 | `POST /api/entries/mongo` | Requires a staff session; checks the MySQL case and MongoDB role permission before inserting a document. |
+| `GET /api/clinical-orders` | Doctor-only; loads medicine and diagnostic-test catalogs and active department-relevant cases. |
+| `POST /api/clinical-orders` | Doctor-only; saves a prescription or diagnostic test order in MySQL under the signed-in doctor. |
 
 MySQL remains the source of truth for patient/case identity, hospital occupancy, triage, and discharge status; MongoDB stores observations, notes, and incidents. The dashboard combines both databases and polls for changes, so SQL edits and MongoDB document changes show up without a page reload. The schema has no discharge timestamp, so "Discharged cases" counts records whose current `case_status` is `Discharged`, not discharges during a particular day. MongoDB repository logic lives in `mongodb/lib/repository.js`; shared query builders and role permissions live in `mongodb/lib/queries.js` and `mongodb/lib/access.js`.
 
@@ -178,7 +183,11 @@ In MySQL Workbench, open and execute these files from the repository root in ord
 
 To rebuild an existing development database from scratch (for example after pulling a schema change such as the new `USER_ACCOUNT` table), first run `DROP DATABASE hospital_emergency_management;` and then run files 1-5 again.
 
+For an existing database, run `06_patient_delete_cascade.sql` once as a MySQL user with `ALTER` and `TRIGGER` privileges. This migrates the patient/case and case/billing foreign keys to `ON DELETE CASCADE` and installs the database-level discharge/payment guard. Re-run `05_security.sql` as root if the web app uses the restricted `er_app` account.
+
 The sample data uses fixed IDs and is intended for a fresh development database. Do not rerun it against a database that already contains those sample records unless you first reset that development database. To update a case, open **Patients**, select a status in the row's **Update status** control, and choose **Save**. Valid statuses are `Open`, `Under Treatment`, `Admitted`, `Discharged`, and `Closed`. Changes persist to MySQL and update live counts; a linked bed is released on discharge or closure. Cases without a bed/department assignment appear in the shared **Unassigned ER queue**.
+
+The **Payments** page is available to both staff roles. It can add a bill for a case without one and update its status and method. The **Patients** page also offers a delete action for eligible patients. SQL deletion is protected by `guard_patient_delete`: a patient must have at least one emergency case and every case must be `Discharged` with a `Paid` bill. You can then delete directly with `DELETE FROM PATIENT WHERE patient_id = 123;` (replace `123` with the ID). Foreign-key cascades remove the patient's cases, bills, treatments, prescriptions, and test orders. MongoDB notes, observations, and incident reports are retained as audit records.
 
 ### 3. Configure and initialize MongoDB
 

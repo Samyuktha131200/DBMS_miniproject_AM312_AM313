@@ -1,0 +1,94 @@
+.paymentTable {
+  min-width: 100%;
+}
+
+.paymentTable table {
+  min-width: 980px;
+}
+
+.caseLabel {
+  display: block;
+  max-width: 270px;
+  margin-top: 5px;
+  line-height: 1.45;
+}
+
+.amountField {
+  display: flex;
+  min-width: 112px;
+  align-items: center;
+  gap: 5px;
+  color: #60789b;
+}
+
+.amountField input,
+.methodSelect {
+  min-width: 100px;
+  padding: 8px 9px;
+  border: 1px solid #d5deeb;
+  border-radius: 9px;
+  color: #334b69;
+  background: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.actionGroup {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.actionButton,
+.deleteButton {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 9px;
+  color: #1d4ed8;
+  background: #edf3ff;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.deleteButton {
+  margin-top: 8px;
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.actionButton:disabled,
+.deleteButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.successBanner {
+  max-width: 1300px;
+  margin: 0 auto 16px;
+  padding: 11px 13px;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 12px;
+  color: #166534;
+  background: #f0fdf4;
+  font-size: 0.86rem;
+}
+
+.retentionNotice {
+  max-width: 1300px;
+  margin: 18px auto 0;
+  color: #60789b;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}

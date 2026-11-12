@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS EMERGENCY_CASE (
         ON UPDATE CASCADE ON DELETE SET NULL,
     CONSTRAINT fk_case_patient FOREIGN KEY (patient_id)
         REFERENCES PATIENT(patient_id)
-        ON UPDATE CASCADE ON DELETE RESTRICT,
+        ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT fk_case_bed FOREIGN KEY (bed_id)
         REFERENCES HOSPITAL_BED(bed_id)
         ON UPDATE CASCADE ON DELETE SET NULL,
@@ -191,7 +191,7 @@ CREATE TABLE IF NOT EXISTS BILLING (
     case_id INT NOT NULL UNIQUE,
     CONSTRAINT fk_billing_case FOREIGN KEY (case_id)
         REFERENCES EMERGENCY_CASE(case_id)
-        ON UPDATE CASCADE ON DELETE RESTRICT,
+        ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT chk_billing_total CHECK (total_amount >= 0),
     CONSTRAINT chk_billing_status CHECK
         (payment_status IN ('Pending','Partially Paid','Paid'))

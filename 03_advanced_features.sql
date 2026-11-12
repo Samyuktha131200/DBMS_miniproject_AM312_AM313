@@ -19,6 +19,7 @@ DROP TRIGGER IF EXISTS check_bed_before_case_insert;
 DROP TRIGGER IF EXISTS check_bed_before_case_update;
 DROP TRIGGER IF EXISTS sync_bed_after_case_insert;
 DROP TRIGGER IF EXISTS sync_bed_after_case_update;
+DROP TRIGGER IF EXISTS guard_patient_delete;
 
 DROP PROCEDURE IF EXISTS DischargeCase;
 DROP FUNCTION IF EXISTS fn_case_test_cost;
@@ -281,6 +282,36 @@ BEGIN
        ) THEN
         UPDATE HOSPITAL_BED SET status = 'Available'
         WHERE bed_id = OLD.bed_id AND status = 'Occupied';
+    END IF;
+END$$
+
+-- A patient can be deleted only after every emergency case is discharged
+-- and every associated bill is fully paid.
+CREATE TRIGGER guard_patient_delete
+BEFORE DELETE ON PATIENT
+FOR EACH ROW
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM EMERGENCY_CASE
+        WHERE patient_id = OLD.patient_id
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Patient can be deleted only when they have discharged and paid emergency cases';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM EMERGENCY_CASE ec
+        LEFT JOIN BILLING b ON b.case_id = ec.case_id
+        WHERE ec.patient_id = OLD.patient_id
+          AND (
+              ec.case_status <> 'Discharged'
+              OR b.bill_id IS NULL
+              OR b.payment_status <> 'Paid'
+          )
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'All patient cases must be discharged and all bills paid before deletion';
     END IF;
 END$$
 

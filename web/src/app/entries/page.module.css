@@ -100,6 +100,15 @@
   gap: 22px;
 }
 
+.clinicalOrderGrid {
+  max-width: 1300px;
+  margin: 22px auto 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 22px;
+}
+
 .entryCard {
   overflow: hidden;
   border: 1px solid rgba(148, 163, 184, 0.2);
@@ -139,6 +148,11 @@
 .mongoBadge {
   color: #15803d;
   background: rgba(34, 197, 94, 0.12);
+}
+
+.sqlBadge {
+  color: #1d4ed8;
+  background: rgba(59, 130, 246, 0.1);
 }
 
 .entryForm {
@@ -226,6 +240,14 @@
   background: #f0fdf4;
 }
 
+.orderStatus {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #5d718d;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
 .demoNotice,
 .backLink {
   display: block;
@@ -247,7 +269,8 @@
 }
 
 @media (max-width: 900px) {
-  .entryGrid {
+  .entryGrid,
+  .clinicalOrderGrid {
     grid-template-columns: 1fr;
   }
 }

@@ -85,6 +85,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const links = [
     { href: "/", label: "Overview" },
     { href: "/patients", label: "Patients" },
+    { href: "/payments", label: "Payments" },
     { href: "/entries", label: user.role === "nurse" ? "Triage & records" : "Clinical records" },
     { href: "/incidents", label: "Incidents" },
     { href: "/notes", label: "Notes" },

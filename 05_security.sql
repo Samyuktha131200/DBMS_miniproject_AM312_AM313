@@ -73,8 +73,9 @@ GRANT EXECUTE ON PROCEDURE hospital_emergency_management.GetEmergencyCaseDetails
 GRANT EXECUTE ON PROCEDURE hospital_emergency_management.GetCasesForPatient      TO er_nurse;
 
 -- ---------------------------------------------------------------------------
--- er_app (the web server): reads for the dashboard and patient list, the
--- inserts on the Data entry page, case/bed status updates, and login.
+-- er_app (the web server): reads for the dashboard, patient list, and payments;
+-- inserts on the data entry and billing pages; payment updates and guarded
+-- deletion of discharged, fully paid patient records.
 -- UPDATE on EMERGENCY_CASE and HOSPITAL_BED is table-level because the
 -- status route reads them with SELECT ... FOR UPDATE.
 -- ---------------------------------------------------------------------------
@@ -88,9 +89,10 @@ GRANT SELECT ON hospital_emergency_management.MEDICINE        TO er_app;
 GRANT SELECT ON hospital_emergency_management.DIAGNOSTIC_TEST TO er_app;
 GRANT SELECT ON hospital_emergency_management.PRESCRIPTION    TO er_app;
 GRANT SELECT ON hospital_emergency_management.TEST_ORDER      TO er_app;
-GRANT SELECT ON hospital_emergency_management.BILLING         TO er_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON hospital_emergency_management.BILLING TO er_app;
 GRANT INSERT ON hospital_emergency_management.PATIENT         TO er_app;
-GRANT SELECT, INSERT, UPDATE ON hospital_emergency_management.EMERGENCY_CASE TO er_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON hospital_emergency_management.EMERGENCY_CASE TO er_app;
+GRANT DELETE ON hospital_emergency_management.PATIENT TO er_app;
 GRANT SELECT, UPDATE ON hospital_emergency_management.HOSPITAL_BED TO er_app;
 GRANT SELECT ON hospital_emergency_management.USER_ACCOUNT TO er_app;
 GRANT UPDATE (last_login) ON hospital_emergency_management.USER_ACCOUNT TO er_app;

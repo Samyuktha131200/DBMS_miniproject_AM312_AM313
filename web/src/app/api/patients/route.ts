@@ -17,6 +17,8 @@ type PatientDbRow = {
   case_status: string | null;
   triage_level: number | null;
   dept_name: string | null;
+  patient_case_count: number;
+  deletable_case_count: number;
 } & mysql.RowDataPacket;
 
 function databaseError(error: unknown) {
@@ -69,6 +71,31 @@ export async function GET(request: NextRequest) {
       SELECT
         p.patient_id, p.first_name, p.last_name,
         e.case_id, e.case_status, e.triage_level,
+        (SELECT COUNT(*) FROM EMERGENCY_CASE patient_case
+         WHERE patient_case.patient_id = p.patient_id) AS patient_case_count,
+        (SELECT COUNT(*)
+         FROM EMERGENCY_CASE removable_case
+         LEFT JOIN HOSPITAL_BED removable_bed ON removable_bed.bed_id = removable_case.bed_id
+         JOIN BILLING removable_bill ON removable_bill.case_id = removable_case.case_id
+         WHERE removable_case.patient_id = p.patient_id
+           AND removable_case.case_status = 'Discharged'
+           AND removable_bill.payment_status = 'Paid'
+           AND (
+             removable_case.bed_id IS NULL
+             OR removable_bed.department_id = ?
+             OR EXISTS (
+               SELECT 1 FROM TREATMENT removable_treatment
+               JOIN DOCTOR removable_doctor ON removable_doctor.doctor_id = removable_treatment.doctor_id
+               WHERE removable_treatment.case_id = removable_case.case_id
+                 AND removable_doctor.department_id = ?
+             )
+             OR EXISTS (
+               SELECT 1 FROM TEST_ORDER removable_order
+               JOIN DOCTOR removable_doctor ON removable_doctor.doctor_id = removable_order.doctor_id
+               WHERE removable_order.case_id = removable_case.case_id
+                 AND removable_doctor.department_id = ?
+             )
+           )) AS deletable_case_count,
         COALESCE(d.dept_name,
           (SELECT td_dept.dept_name FROM TREATMENT t
            JOIN DOCTOR td ON td.doctor_id = t.doctor_id
@@ -94,7 +121,10 @@ export async function GET(request: NextRequest) {
           WHERE o.case_id = e.case_id AND od.department_id = ?
         )
       ORDER BY e.arrival_time DESC, p.patient_id DESC
-    `, [session.departmentId, session.departmentId, session.departmentId]);
+    `, [
+      session.departmentId, session.departmentId, session.departmentId,
+      session.departmentId, session.departmentId, session.departmentId,
+    ]);
 
     const summary = summaryRows[0];
     return NextResponse.json({
@@ -113,6 +143,9 @@ export async function GET(request: NextRequest) {
         status: row.case_status || "No emergency case",
         triageLevel: row.triage_level,
         department: row.dept_name || "Unassigned",
+        canDelete:
+          Number(row.patient_case_count) > 0 &&
+          Number(row.patient_case_count) === Number(row.deletable_case_count),
       })),
     });
   } catch (error) {

@@ -11,6 +11,7 @@ type PatientRecord = {
   status: string;
   triageLevel: number | null;
   department: string;
+  canDelete: boolean;
 };
 
 type PatientResponse = {
@@ -49,6 +50,7 @@ export default function PatientsPage() {
   const [statusError, setStatusError] = useState("");
   const [statusDrafts, setStatusDrafts] = useState<Record<number, string>>({});
   const [savingCaseId, setSavingCaseId] = useState<number | null>(null);
+  const [deletingPatientId, setDeletingPatientId] = useState<number | null>(null);
   const [refreshVersion, setRefreshVersion] = useState(0);
 
   useEffect(() => {
@@ -107,6 +109,29 @@ export default function PatientsPage() {
       setStatusError(updateError instanceof Error ? updateError.message : "Could not update the case status.");
     } finally {
       setSavingCaseId(null);
+    }
+  }
+
+  async function deletePatient(patient: PatientRecord) {
+    const confirmed = window.confirm(
+      `Permanently remove ${patient.name} (patient ID ${patient.patientId}) and all their emergency case records? This is allowed only when every case is discharged and paid. Their MySQL bills, treatments, prescriptions, and test orders will also be deleted. MongoDB notes, observations, and incident reports will be retained.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingPatientId(patient.patientId);
+    setStatusError("");
+    setStatusMessage("");
+    try {
+      const response = await fetch(`/api/patients/${patient.patientId}`, { method: "DELETE" });
+      const result = await response.json() as { error?: string; deletedCases?: number };
+      if (!response.ok) throw new Error(result.error || `Patient deletion failed (${response.status}).`);
+      setStatusMessage(`Patient ${patient.patientId} and ${result.deletedCases ?? 0} case record(s) were removed.`);
+      setLoading(true);
+      setRefreshVersion((version) => version + 1);
+    } catch (deleteError) {
+      setStatusError(deleteError instanceof Error ? deleteError.message : "Could not remove the patient record.");
+    } finally {
+      setDeletingPatientId(null);
     }
   }
 
@@ -172,6 +197,7 @@ export default function PatientsPage() {
                     <th>Triage risk</th>
                     <th>Case status</th>
                     <th>Update status</th>
+                    <th>Remove patient</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -214,9 +240,22 @@ export default function PatientsPage() {
                           </div>
                         )}
                       </td>
+                      <td>
+                        {patient.canDelete &&
+                        data.patients.findIndex((record) => record.patientId === patient.patientId) === index ? (
+                          <button
+                            className={styles.deletePatientButton}
+                            type="button"
+                            disabled={deletingPatientId === patient.patientId}
+                            onClick={() => void deletePatient(patient)}
+                          >
+                            {deletingPatientId === patient.patientId ? "Removing…" : `Delete PAT-${String(patient.patientId).padStart(4, "0")}`}
+                          </button>
+                        ) : "—"}
+                      </td>
                     </tr>
                   )) : (
-                    <tr><td colSpan={7}>No patient records exist in MySQL yet. Use New patient to add one.</td></tr>
+                    <tr><td colSpan={8}>No patient records exist in MySQL yet. Use New patient to add one.</td></tr>
                   )}
                 </tbody>
               </table>
